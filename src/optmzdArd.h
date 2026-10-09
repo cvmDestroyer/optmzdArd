@@ -276,10 +276,11 @@ namespace uno
         volatile uint8_t* reg{reinterpret_cast<volatile uint8_t*>(hardwearLvl<PIN>::PORT)};
         constexpr uint8_t mask{(1 << hardwearLvl<PIN>::BIT)};
     
-        if (val)
+        if (val) {
             *reg |= mask;
-        else
+        } else {
             *reg &= ~mask;
+        }  
 
         SREG = oldSREG;
     }
@@ -397,11 +398,11 @@ namespace uno
     template<uint8_t PIN> void tone(uint16_t frequency, uint32_t duration) {
         uno::tone<PIN>(frequency);
 
-        if (duration > 0) 
+        if (duration > 0) {
             uno::privat::toggle_count = (2UL * frequency * duration) / 1000UL;
-        else 
+        } else { 
             uno::privat::toggle_count = 0; 
-    
+        }
     }
     template<uint8_t PIN> void noTone(void) {
         TIMSK2 &= ~(1 << OCIE2A);
@@ -418,13 +419,13 @@ namespace uno
         if(PIN == 2)
         {
             EICRA &= ~((1 << ISC00) | (1 << ISC01));
-            if (INT_MODE == FALLING) 
+            if (INT_MODE == FALLING) {
                 EICRA |= (1 << ISC01);
-            else if (INT_MODE == RISING) 
+            } else if (INT_MODE == RISING) {
                 EICRA |= (1 << ISC01) | (1 << ISC00);
-            else if (INT_MODE == CHANGE) 
+            } else if (INT_MODE == CHANGE) {
                 EICRA |= (1 << ISC00);
-            
+            }
             uno::privat::int0_func = USER_FUNC; 
             EIFR |= (1 << INTF0);
             EIMSK |= (1 << INT0);
@@ -432,13 +433,13 @@ namespace uno
         else if(PIN == 3) 
         {
             EICRA &= ~((1 << ISC10) | (1 << ISC11));
-            if (INT_MODE == FALLING) 
+            if (INT_MODE == FALLING) {
                 EICRA |= (1 << ISC11);
-            else if (INT_MODE == RISING) 
+            } else if (INT_MODE == RISING) {
                 EICRA |= (1 << ISC11) | (1 << ISC10);
-            else if (INT_MODE == CHANGE) 
+            } else if (INT_MODE == CHANGE) { 
                 EICRA |= (1 << ISC10);
-
+            }
             uno::privat::int1_func = USER_FUNC;
             EIFR |= (1 << INTF1);
             EIMSK |= (1 << INT1);
@@ -475,16 +476,17 @@ namespace uno
         cli();
         uint8_t bit{hardwearLvl<PIN>::BIT};
 
-        if (PIN == 2) 
+        if (PIN == 2) {
             EIMSK &= ~(1 << INT0);
-        else if (PIN == 3) 
+        } else if (PIN == 3) {
             EIMSK &= ~(1 << INT1);
-        else if (PIN <= 7)
+        } else if (PIN <= 7) {
             PCMSK2 &= ~(1 << bit);
-        else if (PIN >= 8 && PIN <= 13)
+        } else if (PIN >= 8 && PIN <= 13) {
             PCMSK0 &= ~(1 << bit);
-        else if (PIN >= 14 && PIN <= 19)
+        } else if (PIN >= 14 && PIN <= 19) {
             PCMSK1 &= ~(1 << bit);
+        }
         SREG = oldSREG;
     }
     // extras
@@ -492,6 +494,43 @@ namespace uno
     void tone(uint16_t frequency);
     void noTone(void);
     void initTimer(void);
+}
+
+namespace mega {
+    namespace privat
+    {
+        struct PinMap {
+            volatile uint8_t* port;
+            volatile uint8_t* ddr;
+            volatile uint8_t* pin_reg;
+            uint8_t mask;
+        };
+        extern const PinMap pin_table[70] PROGMEM;
+    }
+
+    void pinMode(uint8_t pin, uint8_t func);     // <- done
+    void digitalWrite(uint8_t pin, bool val);    // <- done
+    bool digitalRead(uint8_t pin);               // <- done
+    uint16_t analogRead(uint8_t pin);            // <- x
+    void analogReference(uint8_t mode);          // <- x
+    void analogWrite(uint8_t pin, uint8_t val);  // <- x
+
+    uint32_t millis(void);                       // <- x
+    uint32_t micros(void);                       // <- x
+    void delay(uint32_t ms);                     // <- x
+    void delayMicroseconds(uint16_t us);         // <- x
+    uint32_t pulseIn(uint8_t pin, bool state, uint32_t timeout);                   // <- x
+    uint32_t pulseInLong(uint8_t pin, bool state, uint32_t timeout);               // <- x
+    uint32_t pulseIn(uint8_t pin, bool state, uint32_t timeout = 1000000L);        // <- x
+    uint32_t pulseInLong(uint8_t pin, bool state, uint32_t timeout = 1000000L);    // <- x
+    
+    void tone(uint8_t pin, uint16_t frequency);                    // <- x
+    void tone(uint8_t pin, uint16_t frequency, uint32_t duration); // <- x
+    void noTone(uint8_t pin);                                      // <- x
+    
+    void attachInterrupt(uint8_t pin, func_ptr userFunc, uint8_t mode); // <- x
+    void detachInterrupt(uint8_t pin);
+
 }
 
 #endif

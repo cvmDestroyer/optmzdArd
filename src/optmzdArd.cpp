@@ -115,45 +115,45 @@ namespace uno
         util_uno::turnOffPWM(pin);
 
         if (pin >= 0 && pin <= 7) {
-            if (val) 
+            if (val) {
                 PORTD |= (1 << pin);
-            else 
+            } else { 
                 PORTD &= ~(1 << pin);
-
+            }
         } else if (pin >= 8 && pin <= 13) {
-            if (val)
+            if (val) {
                 PORTB |= (1 << (pin - 8));
-            else
+            } else {
                 PORTB &= ~(1 << (pin - 8));
-
+            }
         } else if (pin >= 14 && pin <= 19) {
-            if (val)
+            if (val) {
                 PORTC |= (1 << (pin - 14));
-            else
+            } else {
                 PORTC &= ~(1 << (pin - 14));
-
+            }
         }
         
         SREG = oldSREG;
     }
     bool digitalRead(uint8_t pin)
     {
-        if (pin >= 0 && pin <= 7)
-            return (PIND & (1 << pin)) ? HIGH : LOW;
-        
-        if (pin >= 8 && pin <= 13)
-            return (PINB & (1 << (pin - 8))) ? HIGH : LOW;
-
-        if (pin >= 14 && pin <= 19)
-            return (PINC & (1 << (pin - 14))) ? HIGH : LOW;
-                                 
+        if (pin >= 0 && pin <= 7) {
+            return (PIND & (1 << pin));
+        }
+        if (pin >= 8 && pin <= 13) {
+            return (PINB & (1 << (pin - 8)));
+        }
+        if (pin >= 14 && pin <= 19) {
+            return (PINC & (1 << (pin - 14)));
+        }                         
         return LOW;
     }
     uint16_t analogRead(uint8_t pin)
     {
-        if (pin >= 20 && pin <= 13)
+        if (pin >= 20 && pin <= 13) {
             return 0;
-
+        }
         uint8_t oldSREG{SREG};
         cli();
         
@@ -178,12 +178,13 @@ namespace uno
         // 10 is 5V/Vcc(DEFAULT), 00 is AREF(EXTERNAL), 11 is 1.1V(INTERNAL)
         // THE FIRST NUM IST ALWAYS REFS0 AND THE SECOND IS REFS1
             
-        if (mode == _INTERNAL)      // INTERNAL (REFS0 = 1, REFS1 = 1)
+        if (mode == _INTERNAL) {        // INTERNAL (REFS0 = 1, REFS1 = 1)
             uno::privat::analog_refrece = 0b11000000; 
-        else if (mode == _EXTERNAL) // EXTERNAL (REFS0 = 0, REFS1 = 0)
+        } else if (mode == _EXTERNAL) { // EXTERNAL (REFS0 = 0, REFS1 = 0)
             uno::privat::analog_refrece = 0b00000000;
-        else                        // DEFAULT  (REFS0 = 1, REFS1 = 0)
+        } else {                        // DEFAULT  (REFS0 = 1, REFS1 = 0)
             uno::privat::analog_refrece = 0b01000000;
+        }
     }
     void analogWrite(uint8_t pin, uint8_t val) // clang-format off
     { 
@@ -520,11 +521,11 @@ namespace uno
     void tone(uint8_t pin, uint16_t frequency, uint32_t duration) {
         uno::tone(pin, frequency);
 
-        if (duration > 0) 
+        if (duration > 0) {
             uno::privat::toggle_count = (2UL * frequency * duration) / 1000UL;
-        else 
+        } else {
             uno::privat::toggle_count = 0;
-
+        }
     }
     void noTone(uint8_t pin) {
         TIMSK2 &= ~(1 << OCIE2A);
@@ -538,24 +539,26 @@ namespace uno
         if(pin == 2) 
         {
             EICRA &= ~(1 << ISC00) | (1 << ISC01);
-            if (mode == FALLING) 
+            if (mode == FALLING) {
                 EICRA |= (1 << ISC01);
-            else if (mode == RISING) 
+            } else if (mode == RISING) {
                 EICRA |= (1 << ISC01) | (1 << ISC00);
-            else if (mode == CHANGE) 
+            } else if (mode == CHANGE) {
                 EICRA |= (1 << ISC00);
+            } 
             uno::privat::int0_func = userFunc; 
             EIMSK |= (1 << INT0);
         }
         else if(pin == 3) 
         {
             EICRA &= ~(1 << ISC10) | (1 << ISC11);
-            if (mode == FALLING) 
+            if (mode == FALLING) {
                 EICRA |= (1 << ISC11);
-            else if (mode == RISING) 
+            } else if (mode == RISING) {
                 EICRA |= (1 << ISC11) | (1 << ISC10);
-            else if (mode == CHANGE) 
+            } else if (mode == CHANGE) {
                 EICRA |= (1 << ISC10);
+            }
             uno::privat::int1_func = userFunc;
             EIMSK |= (1 << INT1);
         }
@@ -590,27 +593,28 @@ namespace uno
         uint8_t oldSREG{SREG};
         cli();
         
-        if (pin == 2) 
+        if (pin == 2) {
             EIMSK &= ~(1 << INT0);
-        else if (pin == 3) 
+        } else if (pin == 3) {
             EIMSK &= ~(1 << INT1);
-        else if (pin <= 7)
+        } else if (pin <= 7) {
             PCMSK2 &= ~(1 << pin);
-        else if (pin >= 8 && pin <= 13)
+        } else if (pin >= 8 && pin <= 13) {
             PCMSK0 &= ~(1 << (pin - 8));
-        else if (pin >= 14 && pin <= 19)
+        } else if (pin >= 14 && pin <= 19) {
             PCMSK1 &= ~(1 << (pin - 14));
+        }
         SREG = oldSREG;
     }
     // extras
     uint16_t analogRead(uint8_t pin, bool modePeformance)
     {
-        if (!modePeformance)
+        if (!modePeformance) {
             return uno::analogRead(pin);
-
-        if (pin >= 20 && pin <= 13)
+        }
+        if (pin >= 20 && pin <= 13) {
             return 0;
-
+        }
         uint8_t oldSREG{SREG};
         cli();
         
@@ -735,7 +739,7 @@ ISR(PCINT0_vect) {
         if (changed & (1 << bit)) {
             uint8_t pin = bit + 8;
             func_ptr cb = uno::privat::callbacks[pin];
-            if (!cb) continue;
+            if (!cb) {continue;}
 
             uint8_t mode = uno::privat::modes[pin];
             bool pinState = (current & (1 << bit));
@@ -757,7 +761,7 @@ ISR(PCINT2_vect) {
         if (changed & (1 << bit)) {
             uint8_t pin = bit;
             func_ptr cb = uno::privat::callbacks[pin];
-            if (!cb) continue;
+            if (!cb) {continue;}
 
             uint8_t mode = uno::privat::modes[pin];
             bool pinState = (current & (1 << bit));
@@ -779,7 +783,7 @@ ISR(PCINT1_vect) {
         if (changed & (1 << bit)) {
             uint8_t pin = bit + 14;
             func_ptr cb = uno::privat::callbacks[pin];
-            if (!cb) continue;
+            if (!cb) {continue;}
 
             uint8_t mode = uno::privat::modes[pin];
             bool pinState = (current & (1 << bit));
@@ -797,4 +801,145 @@ ISR(INT0_vect) {
 }
 ISR(INT1_vect) {
     uno::privat::int1_func();
+}
+
+
+#include <avr/pgmspace.h>
+
+namespace mega {
+    namespace privat 
+    {
+        const PinMap pin_table[70] PROGMEM = {
+            { &PORTE, &DDRE, &PINE, _BV(0) }, // 0: PE0
+            { &PORTE, &DDRE, &PINE, _BV(1) }, // 1: PE1
+            { &PORTE, &DDRE, &PINE, _BV(4) }, // 2: PE4
+            { &PORTE, &DDRE, &PINE, _BV(5) }, // 3: PE5
+            { &PORTG, &DDRG, &PING, _BV(5) }, // 4: PG5
+            { &PORTE, &DDRE, &PINE, _BV(3) }, // 5: PE3
+            { &PORTH, &DDRH, &PINH, _BV(3) }, // 6: PH3
+            { &PORTH, &DDRH, &PINH, _BV(4) }, // 7: PH4
+
+            { &PORTH, &DDRH, &PINH, _BV(5) }, // 8: PH5
+            { &PORTH, &DDRH, &PINH, _BV(6) }, // 9: PH6
+            { &PORTB, &DDRB, &PINB, _BV(4) }, // 10: PB4
+            { &PORTB, &DDRB, &PINB, _BV(5) }, // 11: PB5
+            { &PORTB, &DDRB, &PINB, _BV(6) }, // 12: PB6
+            { &PORTB, &DDRB, &PINB, _BV(7) }, // 13: PB7
+
+            { &PORTJ, &DDRJ, &PINJ, _BV(1) }, // 14: PJ1
+            { &PORTJ, &DDRJ, &PINJ, _BV(0) }, // 15: PJ0
+            { &PORTH, &DDRH, &PINH, _BV(1) }, // 16: PH1
+            { &PORTH, &DDRH, &PINH, _BV(0) }, // 17: PH0
+            { &PORTD, &DDRD, &PIND, _BV(3) }, // 18: PD3
+            { &PORTD, &DDRD, &PIND, _BV(2) }, // 19: PD2
+            { &PORTD, &DDRD, &PIND, _BV(1) }, // 20: PD1
+            { &PORTD, &DDRD, &PIND, _BV(0) }, // 21: PD0
+
+            { &PORTA, &DDRA, &PINA, _BV(0) }, // 22: PA0
+            { &PORTA, &DDRA, &PINA, _BV(1) }, // 23: PA1
+            { &PORTA, &DDRA, &PINA, _BV(2) }, // 24: PA2
+            { &PORTA, &DDRA, &PINA, _BV(3) }, // 25: PA3
+            { &PORTA, &DDRA, &PINA, _BV(4) }, // 26: PA4
+            { &PORTA, &DDRA, &PINA, _BV(5) }, // 27: PA5
+            { &PORTA, &DDRA, &PINA, _BV(6) }, // 28: PA6
+            { &PORTA, &DDRA, &PINA, _BV(7) }, // 29: PA7
+
+            { &PORTC, &DDRC, &PINC, _BV(7) }, // 30: PC7
+            { &PORTC, &DDRC, &PINC, _BV(6) }, // 31: PC6
+            { &PORTC, &DDRC, &PINC, _BV(5) }, // 32: PC5
+            { &PORTC, &DDRC, &PINC, _BV(4) }, // 33: PC4
+            { &PORTC, &DDRC, &PINC, _BV(3) }, // 34: PC3
+            { &PORTC, &DDRC, &PINC, _BV(2) }, // 35: PC2
+            { &PORTC, &DDRC, &PINC, _BV(1) }, // 36: PC1
+            { &PORTC, &DDRC, &PINC, _BV(0) }, // 37: PC0
+
+            { &PORTD, &DDRD, &PIND, _BV(7) }, // 38: PD7
+            { &PORTG, &DDRG, &PING, _BV(2) }, // 39: PG2
+            { &PORTG, &DDRG, &PING, _BV(1) }, // 40: PG1
+            { &PORTG, &DDRG, &PING, _BV(0) }, // 41: PG0
+
+            { &PORTL, &DDRL, &PINL, _BV(7) }, // 42: PL7
+            { &PORTL, &DDRL, &PINL, _BV(6) }, // 43: PL6
+            { &PORTL, &DDRL, &PINL, _BV(5) }, // 44: PL5
+            { &PORTL, &DDRL, &PINL, _BV(4) }, // 45: PL4
+            { &PORTL, &DDRL, &PINL, _BV(3) }, // 46: PL3
+            { &PORTL, &DDRL, &PINL, _BV(2) }, // 47: PL2
+            { &PORTL, &DDRL, &PINL, _BV(1) }, // 48: PL1
+            { &PORTL, &DDRL, &PINL, _BV(0) }, // 49: PL0
+
+            { &PORTB, &DDRB, &PINB, _BV(3) }, // 50: PB3
+            { &PORTB, &DDRB, &PINB, _BV(2) }, // 51: PB2
+            { &PORTB, &DDRB, &PINB, _BV(1) }, // 52: PB1
+            { &PORTB, &DDRB, &PINB, _BV(0) }, // 53: PB0
+
+            { &PORTF, &DDRF, &PINF, _BV(0) }, // 54: PF0 (A0)
+            { &PORTF, &DDRF, &PINF, _BV(1) }, // 55: PF1 (A1)
+            { &PORTF, &DDRF, &PINF, _BV(2) }, // 56: PF2 (A2)
+            { &PORTF, &DDRF, &PINF, _BV(3) }, // 57: PF3 (A3)
+            { &PORTF, &DDRF, &PINF, _BV(4) }, // 58: PF4 (A4)
+            { &PORTF, &DDRF, &PINF, _BV(5) }, // 59: PF5 (A5)
+            { &PORTF, &DDRF, &PINF, _BV(6) }, // 60: PF6 (A6)
+            { &PORTF, &DDRF, &PINF, _BV(7) }, // 61: PF7 (A7)
+
+            { &PORTK, &DDRK, &PINK, _BV(0) }, // 62: PK0 (A8)
+            { &PORTK, &DDRK, &PINK, _BV(1) }, // 63: PK1 (A9)
+            { &PORTK, &DDRK, &PINK, _BV(2) }, // 64: PK2 (A10)
+            { &PORTK, &DDRK, &PINK, _BV(3) }, // 65: PK3 (A11)
+            { &PORTK, &DDRK, &PINK, _BV(4) }, // 66: PK4 (A12)
+            { &PORTK, &DDRK, &PINK, _BV(5) }, // 67: PK5 (A13)
+            { &PORTK, &DDRK, &PINK, _BV(6) }, // 68: PK6 (A14)
+            { &PORTK, &DDRK, &PINK, _BV(7) }  // 69: PK7 (A15)
+        };
+    }
+
+    void pinMode(uint8_t pin, uint8_t func) {
+        if (pin >= 70) {return;}
+
+        volatile uint8_t* ddr = (volatile uint8_t*)pgm_read_word(&privat::pin_table[pin].ddr);
+        volatile uint8_t* port = (volatile uint8_t*)pgm_read_word(&privat::pin_table[pin].port);
+        uint8_t mask = pgm_read_byte(&privat::pin_table[pin].mask);
+
+        uint8_t oldSREG = SREG;
+        cli();
+
+        if (func == _OUTPUT) {
+            *ddr |= mask;
+            *port &= ~mask;
+        } else if (func == _INPUT) {
+            *ddr &= ~mask;
+            *port &= ~mask;
+        } else if (func == _INPUT_PULLUP) {
+            *ddr &= ~mask;
+            *port |= mask;
+        }
+
+        SREG = oldSREG;
+    }
+
+    void digitalWrite(uint8_t pin, bool val) {
+        if (pin >= 70) {return;}
+
+        volatile uint8_t* port = (volatile uint8_t*)pgm_read_word(&privat::pin_table[pin].port);
+        uint8_t mask = pgm_read_byte(&privat::pin_table[pin].mask);
+
+        uint8_t oldSREG = SREG;
+        cli();
+
+        if (val) {
+            *port |= mask;
+        } else {
+            *port &= ~mask;
+        }
+
+        SREG = oldSREG;
+    }
+
+    bool digitalRead(uint8_t pin) {
+        if (pin >= 70) {return false;}
+
+        volatile uint8_t* pin_reg = (volatile uint8_t*)pgm_read_word(&privat::pin_table[pin].pin_reg);
+        uint8_t mask = pgm_read_byte(&privat::pin_table[pin].mask);
+
+        return (*pin_reg & mask);
+    }
 }
