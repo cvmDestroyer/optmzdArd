@@ -17,6 +17,8 @@
 #ifndef util_ard_h
 #define util_ard_h
 
+using func_ptr = void (*)();
+
 namespace util_uno
 {
     static inline bool notPwmPin(uint8_t pin)
