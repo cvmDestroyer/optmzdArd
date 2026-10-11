@@ -1,4 +1,18 @@
 #include <Arduino.h> // clang-format off
+/*
+'  _______   _______                                           _______   _______   _______   _______ 
+' |       | |       |  _______   _______   ________  _______  |       | |   _   | |   __  | |   __  |
+' |   |   | └-┐   ┌-┘ |       | |       | |   __  | |____   | ├────   | |__   __| |  | ╱| | |    ___|
+' |       |   |   |   |  |  | | |   ' __| |     __| |   .   | ├────   | |   _   | |  |╱_| | |   |    
+' |___|___|   |___|   |__|__|_| |_______| ┌' __'──┐ |_____|_| |_______| |_______| |_______| |___|    
+'                                         |_______|                                        
+'       
+'  __   __   _ _____   _______ 
+' |  | |  | | V _   | |       |
+' |  |_|  | |  | |  | |   '   |
+' |_______| |__| |__| |_______|
+'
+*/
 
 /*
   IF THIS IS YOUR FIRST EXPLAINATION FILE YOUR IN THE WRONG PLACE THIS IS EXPLAINATION FILE NUMBER 2
@@ -190,14 +204,14 @@ uint16_t analogRead(uint8_t pin)
   okay i dont want you to figure out your self which pin is in which timer and which COMxx1 to use so here
   is a small tabel with all you need to know to write your own analogWrite :
   .        
-  .    pin | COMxx1 | OCRxx | TCCRxA | TCCRxB | CSx2 | CSx1 | CSx0 | WGMx2(TCCRxB) | WGMx1(TCCRxA) | WGMx0(TCCRxA) 
-  .  ------|--------|-------|--------|--------|------|------|------|---------------|---------------|---------------  
-  .     3  | COM2B1 | OCR2B | TCCR2A | TCCR2B | CS22 |  ~~  |  ~~  |       ~       |     WGM21     |     WGM20     
-  .     5  | COM0B1 | OCR0B | TCCR0A | TCCR0B |  ~~  | CS01 | CS00 |       ~       |     WGM01     |     WGM00     
-  .     6  | COM0A1 | OCR0A | TCCR0A | TCCR0B |  ~~  | CS01 | CS00 |       ~       |     WGM01     |     WGM00     
-  .     9  | COM1A1 | OCR1A | TCCR1A | TCCR1B |  ~~  | CS11 | CS10 |     WGM12     |       ~       |     WGM10     
-  .    10  | COM1B1 | OCR1B | TCCR1A | TCCR1B |  ~~  | CS11 | CS10 |     WGM12     |       ~       |     WGM10     
-  .    11  | COM2A1 | OCR2A | TCCR2A | TCCR2B | CS22 |  ~~  |  ~~  |       ~       |     WGM21     |     WGM20     
+  .    pin | COMxx1 | OCRxx | TCCRxA | TCCRxB | CSx2 | CSx1 | CSx0 | WGMx3(TCCRxB) | WGMx2(TCCRxB) | WGMx1(TCCRxA) | WGMx0(TCCRxA) 
+  .  ------|--------|-------|--------|--------|------|------|------|---------------|---------------|---------------|---------------  
+  .     3  | COM2B1 | OCR2B | TCCR2A | TCCR2B | CS22 |  ~0  |  ~0  |       ~       |      ~0       |     WGM21     |     WGM20     
+  .     5  | COM0B1 | OCR0B | TCCR0A | TCCR0B |  ~0  | CS01 | CS00 |       ~       |      ~0       |     WGM01     |     WGM00     
+  .     6  | COM0A1 | OCR0A | TCCR0A | TCCR0B |  ~0  | CS01 | CS00 |       ~       |      ~0       |     WGM01     |     WGM00     
+  .     9  | COM1A1 | OCR1A | TCCR1A | TCCR1B |  ~0  | CS11 | CS10 |      ~0       |     WGM12     |      ~0       |     WGM10     
+  .    10  | COM1B1 | OCR1B | TCCR1A | TCCR1B |  ~0  | CS11 | CS10 |      ~0       |     WGM12     |      ~0       |     WGM10     
+  .    11  | COM2A1 | OCR2A | TCCR2A | TCCR2B | CS22 |  ~0  |  ~0  |       ~       |      ~0       |     WGM21     |     WGM20     
 */
 void analogWrite(uint8_t pin, uint8_t val)
 {

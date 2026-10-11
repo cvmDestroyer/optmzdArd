@@ -504,6 +504,14 @@ namespace mega {
             volatile uint8_t* ddr;
             volatile uint8_t* pin_reg;
             uint8_t mask;
+
+            bool has_pwm;
+            volatile uint8_t* tccra;
+            volatile uint8_t* tccrb;
+            volatile uint16_t* ocr;
+            uint8_t com_bit;
+            uint8_t tccra_bits;
+            uint8_t tccrb_bits;
         };
         extern const PinMap pin_table[70] PROGMEM;
     }
@@ -511,9 +519,9 @@ namespace mega {
     void pinMode(uint8_t pin, uint8_t func);     // <- done
     void digitalWrite(uint8_t pin, bool val);    // <- done
     bool digitalRead(uint8_t pin);               // <- done
-    uint16_t analogRead(uint8_t pin);            // <- x
-    void analogReference(uint8_t mode);          // <- x
-    void analogWrite(uint8_t pin, uint8_t val);  // <- x
+    uint16_t analogRead(uint8_t pin);            // <- done
+    void analogReference(uint8_t mode);          // <- done
+    void analogWrite(uint8_t pin, uint8_t val);  // <- done
 
     uint32_t millis(void);                       // <- x
     uint32_t micros(void);                       // <- x

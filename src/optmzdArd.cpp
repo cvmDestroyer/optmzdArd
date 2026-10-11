@@ -38,7 +38,7 @@ namespace ard
     void attachInterrupt(uint8_t pin, func_ptr userFunc, uint8_t mode) { ::attachInterrupt(digitalPinToInterrupt(pin), userFunc, mode);  }
     void detachInterrupt(uint8_t pin)                                  { ::detachInterrupt(pin);                                         }
 }
-
+#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__)
 namespace uno
 {
     namespace privat
@@ -802,104 +802,105 @@ ISR(INT0_vect) {
 ISR(INT1_vect) {
     uno::privat::int1_func();
 }
-
+#endif
 
 #include <avr/pgmspace.h>
 
 namespace mega {
     namespace privat 
     {
+        uint8_t analog_reference {0b01000000};
         const PinMap pin_table[70] PROGMEM = {
-            { &PORTE, &DDRE, &PINE, _BV(0) }, // 0: PE0
-            { &PORTE, &DDRE, &PINE, _BV(1) }, // 1: PE1
-            { &PORTE, &DDRE, &PINE, _BV(4) }, // 2: PE4
-            { &PORTE, &DDRE, &PINE, _BV(5) }, // 3: PE5
-            { &PORTG, &DDRG, &PING, _BV(5) }, // 4: PG5
-            { &PORTE, &DDRE, &PINE, _BV(3) }, // 5: PE3
-            { &PORTH, &DDRH, &PINH, _BV(3) }, // 6: PH3
-            { &PORTH, &DDRH, &PINH, _BV(4) }, // 7: PH4
 
-            { &PORTH, &DDRH, &PINH, _BV(5) }, // 8: PH5
-            { &PORTH, &DDRH, &PINH, _BV(6) }, // 9: PH6
-            { &PORTB, &DDRB, &PINB, _BV(4) }, // 10: PB4
-            { &PORTB, &DDRB, &PINB, _BV(5) }, // 11: PB5
-            { &PORTB, &DDRB, &PINB, _BV(6) }, // 12: PB6
-            { &PORTB, &DDRB, &PINB, _BV(7) }, // 13: PB7
+            { &PORTE, &DDRE, &PINE, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTE, &DDRE, &PINE, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTE, &DDRE, &PINE, _BV(4), true,  &TCCR3A, &TCCR3B, (volatile uint16_t*)&OCR3B, (1 << COM3B1), 0x01, 0x0B },
+            { &PORTE, &DDRE, &PINE, _BV(5), true,  &TCCR3A, &TCCR3B, (volatile uint16_t*)&OCR3C, (1 << COM3C1), 0x01, 0x0B },
+            { &PORTG, &DDRG, &PING, _BV(5), true,  &TCCR0A, &TCCR0B, (volatile uint16_t*)&OCR0B, (1 << COM0B1), 0x03, 0x03 },
+            { &PORTE, &DDRE, &PINE, _BV(3), true,  &TCCR3A, &TCCR3B, (volatile uint16_t*)&OCR3A, (1 << COM3A1), 0x01, 0x0B },
+            { &PORTH, &DDRH, &PINH, _BV(3), true,  &TCCR4A, &TCCR4B, (volatile uint16_t*)&OCR4A, (1 << COM4A1), 0x01, 0x0B },
+            { &PORTH, &DDRH, &PINH, _BV(4), true,  &TCCR4A, &TCCR4B, (volatile uint16_t*)&OCR4B, (1 << COM4B1), 0x01, 0x0B },
+            { &PORTH, &DDRH, &PINH, _BV(5), true,  &TCCR4A, &TCCR4B, (volatile uint16_t*)&OCR4C, (1 << COM4C1), 0x01, 0x0B },
+            { &PORTH, &DDRH, &PINH, _BV(6), true,  &TCCR2A, &TCCR2B, (volatile uint16_t*)&OCR2B, (1 << COM2B1), 0x03, 0x04 },
+            { &PORTB, &DDRB, &PINB, _BV(4), true,  &TCCR2A, &TCCR2B, (volatile uint16_t*)&OCR2A, (1 << COM2A1), 0x03, 0x04 },
+            { &PORTB, &DDRB, &PINB, _BV(5), true,  &TCCR1A, &TCCR1B, (volatile uint16_t*)&OCR1A, (1 << COM1A1), 0x01, 0x0B },
+            { &PORTB, &DDRB, &PINB, _BV(6), true,  &TCCR1A, &TCCR1B, (volatile uint16_t*)&OCR1B, (1 << COM1B1), 0x01, 0x0B },
+            { &PORTB, &DDRB, &PINB, _BV(7), true,  &TCCR0A, &TCCR0B, (volatile uint16_t*)&OCR0A, (1 << COM0A1), 0x03, 0x03 },
 
-            { &PORTJ, &DDRJ, &PINJ, _BV(1) }, // 14: PJ1
-            { &PORTJ, &DDRJ, &PINJ, _BV(0) }, // 15: PJ0
-            { &PORTH, &DDRH, &PINH, _BV(1) }, // 16: PH1
-            { &PORTH, &DDRH, &PINH, _BV(0) }, // 17: PH0
-            { &PORTD, &DDRD, &PIND, _BV(3) }, // 18: PD3
-            { &PORTD, &DDRD, &PIND, _BV(2) }, // 19: PD2
-            { &PORTD, &DDRD, &PIND, _BV(1) }, // 20: PD1
-            { &PORTD, &DDRD, &PIND, _BV(0) }, // 21: PD0
+            { &PORTJ, &DDRJ, &PINJ, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTJ, &DDRJ, &PINJ, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTH, &DDRH, &PINH, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTH, &DDRH, &PINH, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTD, &DDRD, &PIND, _BV(3), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTD, &DDRD, &PIND, _BV(2), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTD, &DDRD, &PIND, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTD, &DDRD, &PIND, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
 
-            { &PORTA, &DDRA, &PINA, _BV(0) }, // 22: PA0
-            { &PORTA, &DDRA, &PINA, _BV(1) }, // 23: PA1
-            { &PORTA, &DDRA, &PINA, _BV(2) }, // 24: PA2
-            { &PORTA, &DDRA, &PINA, _BV(3) }, // 25: PA3
-            { &PORTA, &DDRA, &PINA, _BV(4) }, // 26: PA4
-            { &PORTA, &DDRA, &PINA, _BV(5) }, // 27: PA5
-            { &PORTA, &DDRA, &PINA, _BV(6) }, // 28: PA6
-            { &PORTA, &DDRA, &PINA, _BV(7) }, // 29: PA7
+            { &PORTA, &DDRA, &PINA, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTA, &DDRA, &PINA, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTA, &DDRA, &PINA, _BV(2), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTA, &DDRA, &PINA, _BV(3), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTA, &DDRA, &PINA, _BV(4), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTA, &DDRA, &PINA, _BV(5), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTA, &DDRA, &PINA, _BV(6), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTA, &DDRA, &PINA, _BV(7), false,    0,       0,                  0,                   0,       0,    0   },
 
-            { &PORTC, &DDRC, &PINC, _BV(7) }, // 30: PC7
-            { &PORTC, &DDRC, &PINC, _BV(6) }, // 31: PC6
-            { &PORTC, &DDRC, &PINC, _BV(5) }, // 32: PC5
-            { &PORTC, &DDRC, &PINC, _BV(4) }, // 33: PC4
-            { &PORTC, &DDRC, &PINC, _BV(3) }, // 34: PC3
-            { &PORTC, &DDRC, &PINC, _BV(2) }, // 35: PC2
-            { &PORTC, &DDRC, &PINC, _BV(1) }, // 36: PC1
-            { &PORTC, &DDRC, &PINC, _BV(0) }, // 37: PC0
+            { &PORTC, &DDRC, &PINC, _BV(7), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTC, &DDRC, &PINC, _BV(6), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTC, &DDRC, &PINC, _BV(5), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTC, &DDRC, &PINC, _BV(4), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTC, &DDRC, &PINC, _BV(3), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTC, &DDRC, &PINC, _BV(2), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTC, &DDRC, &PINC, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTC, &DDRC, &PINC, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
 
-            { &PORTD, &DDRD, &PIND, _BV(7) }, // 38: PD7
-            { &PORTG, &DDRG, &PING, _BV(2) }, // 39: PG2
-            { &PORTG, &DDRG, &PING, _BV(1) }, // 40: PG1
-            { &PORTG, &DDRG, &PING, _BV(0) }, // 41: PG0
+            { &PORTD, &DDRD, &PIND, _BV(7), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTG, &DDRG, &PING, _BV(2), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTG, &DDRG, &PING, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTG, &DDRG, &PING, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
 
-            { &PORTL, &DDRL, &PINL, _BV(7) }, // 42: PL7
-            { &PORTL, &DDRL, &PINL, _BV(6) }, // 43: PL6
-            { &PORTL, &DDRL, &PINL, _BV(5) }, // 44: PL5
-            { &PORTL, &DDRL, &PINL, _BV(4) }, // 45: PL4
-            { &PORTL, &DDRL, &PINL, _BV(3) }, // 46: PL3
-            { &PORTL, &DDRL, &PINL, _BV(2) }, // 47: PL2
-            { &PORTL, &DDRL, &PINL, _BV(1) }, // 48: PL1
-            { &PORTL, &DDRL, &PINL, _BV(0) }, // 49: PL0
+            { &PORTL, &DDRL, &PINL, _BV(7), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTL, &DDRL, &PINL, _BV(6), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTL, &DDRL, &PINL, _BV(5), true,  &TCCR5A, &TCCR5B, (volatile uint16_t*)&OCR5C, (1 << COM5C1), 0x01, 0x0B },
+            { &PORTL, &DDRL, &PINL, _BV(4), true,  &TCCR5A, &TCCR5B, (volatile uint16_t*)&OCR5B, (1 << COM5B1), 0x01, 0x0B },
+            { &PORTL, &DDRL, &PINL, _BV(3), true,  &TCCR5A, &TCCR5B, (volatile uint16_t*)&OCR5A, (1 << COM5A1), 0x01, 0x0B },
+            { &PORTL, &DDRL, &PINL, _BV(2), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTL, &DDRL, &PINL, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTL, &DDRL, &PINL, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
 
-            { &PORTB, &DDRB, &PINB, _BV(3) }, // 50: PB3
-            { &PORTB, &DDRB, &PINB, _BV(2) }, // 51: PB2
-            { &PORTB, &DDRB, &PINB, _BV(1) }, // 52: PB1
-            { &PORTB, &DDRB, &PINB, _BV(0) }, // 53: PB0
+            { &PORTB, &DDRB, &PINB, _BV(3), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTB, &DDRB, &PINB, _BV(2), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTB, &DDRB, &PINB, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTB, &DDRB, &PINB, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
 
-            { &PORTF, &DDRF, &PINF, _BV(0) }, // 54: PF0 (A0)
-            { &PORTF, &DDRF, &PINF, _BV(1) }, // 55: PF1 (A1)
-            { &PORTF, &DDRF, &PINF, _BV(2) }, // 56: PF2 (A2)
-            { &PORTF, &DDRF, &PINF, _BV(3) }, // 57: PF3 (A3)
-            { &PORTF, &DDRF, &PINF, _BV(4) }, // 58: PF4 (A4)
-            { &PORTF, &DDRF, &PINF, _BV(5) }, // 59: PF5 (A5)
-            { &PORTF, &DDRF, &PINF, _BV(6) }, // 60: PF6 (A6)
-            { &PORTF, &DDRF, &PINF, _BV(7) }, // 61: PF7 (A7)
+            { &PORTF, &DDRF, &PINF, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTF, &DDRF, &PINF, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTF, &DDRF, &PINF, _BV(2), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTF, &DDRF, &PINF, _BV(3), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTF, &DDRF, &PINF, _BV(4), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTF, &DDRF, &PINF, _BV(5), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTF, &DDRF, &PINF, _BV(6), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTF, &DDRF, &PINF, _BV(7), false,    0,       0,                  0,                   0,       0,    0   },
 
-            { &PORTK, &DDRK, &PINK, _BV(0) }, // 62: PK0 (A8)
-            { &PORTK, &DDRK, &PINK, _BV(1) }, // 63: PK1 (A9)
-            { &PORTK, &DDRK, &PINK, _BV(2) }, // 64: PK2 (A10)
-            { &PORTK, &DDRK, &PINK, _BV(3) }, // 65: PK3 (A11)
-            { &PORTK, &DDRK, &PINK, _BV(4) }, // 66: PK4 (A12)
-            { &PORTK, &DDRK, &PINK, _BV(5) }, // 67: PK5 (A13)
-            { &PORTK, &DDRK, &PINK, _BV(6) }, // 68: PK6 (A14)
-            { &PORTK, &DDRK, &PINK, _BV(7) }  // 69: PK7 (A15)
+            { &PORTK, &DDRK, &PINK, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTK, &DDRK, &PINK, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTK, &DDRK, &PINK, _BV(2), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTK, &DDRK, &PINK, _BV(3), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTK, &DDRK, &PINK, _BV(4), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTK, &DDRK, &PINK, _BV(5), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTK, &DDRK, &PINK, _BV(6), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTK, &DDRK, &PINK, _BV(7), false,    0,       0,                  0,                   0,       0,    0   }
         };
     }
 
     void pinMode(uint8_t pin, uint8_t func) {
         if (pin >= 70) {return;}
 
-        volatile uint8_t* ddr = (volatile uint8_t*)pgm_read_word(&privat::pin_table[pin].ddr);
-        volatile uint8_t* port = (volatile uint8_t*)pgm_read_word(&privat::pin_table[pin].port);
-        uint8_t mask = pgm_read_byte(&privat::pin_table[pin].mask);
+        volatile uint8_t* ddr  {reinterpret_cast<volatile uint8_t*>(pgm_read_word(&mega::privat::pin_table[pin].ddr))};
+        volatile uint8_t* port {reinterpret_cast<volatile uint8_t*>(pgm_read_word(&mega::privat::pin_table[pin].port))};
+        uint8_t mask{pgm_read_byte(&mega::privat::pin_table[pin].mask)};
 
-        uint8_t oldSREG = SREG;
+        uint8_t oldSREG {SREG};
         cli();
 
         if (func == _OUTPUT) {
@@ -919,10 +920,10 @@ namespace mega {
     void digitalWrite(uint8_t pin, bool val) {
         if (pin >= 70) {return;}
 
-        volatile uint8_t* port = (volatile uint8_t*)pgm_read_word(&privat::pin_table[pin].port);
-        uint8_t mask = pgm_read_byte(&privat::pin_table[pin].mask);
+        volatile uint8_t* port {reinterpret_cast<volatile uint8_t*>(pgm_read_word(&mega::privat::pin_table[pin].port))};
+        uint8_t mask           {pgm_read_byte(&mega::privat::pin_table[pin].mask)};
 
-        uint8_t oldSREG = SREG;
+        uint8_t oldSREG {SREG};
         cli();
 
         if (val) {
@@ -937,9 +938,107 @@ namespace mega {
     bool digitalRead(uint8_t pin) {
         if (pin >= 70) {return false;}
 
-        volatile uint8_t* pin_reg = (volatile uint8_t*)pgm_read_word(&privat::pin_table[pin].pin_reg);
-        uint8_t mask = pgm_read_byte(&privat::pin_table[pin].mask);
+        volatile uint8_t* pin_reg {reinterpret_cast<volatile uint8_t*>(pgm_read_word(&mega::privat::pin_table[pin].pin_reg))};
+        uint8_t mask              {pgm_read_byte(&mega::privat::pin_table[pin].mask)};
 
         return (*pin_reg & mask);
     }
-}
+    uint16_t analogRead(uint8_t pin) 
+    {
+        // explaination is in the analogMega file
+        // but is basicly the same as the uno variant only diffrence is
+        // there are more pins
+        uint8_t channel {pin - 54};
+        if (channel > 15) {return 0;}
+
+        uint8_t oldSREG {SREG};
+        cli();
+
+        if (channel >= 8) {
+            ADCSRB |= (1 << MUX5);
+            ADMUX = mega::privat::analog_reference | ((channel - 8) & 0x07);
+            DIDR2 |= (1 << (channel - 8));
+        } else {
+            ADCSRB &= ~(1 << MUX5);
+            ADMUX = mega::privat::analog_reference | (channel & 0x07);
+            DIDR0 |= (1 << channel);
+        }
+    
+        ADCSRA = (1 << ADEN) | (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
+
+        ADCSRA |= (1 << ADSC);
+        SREG = oldSREG;
+        while (ADCSRA & (1 << ADSC))
+            ;
+
+        if (channel >= 8) {
+            DIDR2 &= ~(1 << (channel - 8));
+        } else {
+            DIDR0 &= ~(1 << channel);
+        }
+
+        return ADC;
+    }
+    void analogReference(uint8_t mode)
+    {     
+        if (mode == _INTERNAL2V56) {
+            mega::privat::analog_reference = 0b11000000; 
+        } else if (mode == _INTERNAL1V1) {
+            mega::privat::analog_reference = 0b10000000;
+        } else if (mode == _EXTERNAL) {
+            mega::privat::analog_reference = 0b00000000;
+        } else {
+            mega::privat::analog_reference = 0b01000000;
+        }
+    }
+    void analogWrite(uint8_t pin, uint8_t val)
+    {
+        if (pin >= 70) {return;}
+
+        bool has_pwm{pgm_read_byte(&mega::privat::pin_table[pin].has_pwm)};
+        
+        if (!has_pwm) {
+            digitalWrite(pin, (val <= 128) ? false : true);
+            return;
+        }
+
+        volatile uint8_t* tccra {reinterpret_cast<volatile uint8_t*>(pgm_read_word(&mega::privat::pin_table[pin].tccra))};
+        volatile uint8_t* tccrb {reinterpret_cast<volatile uint8_t*>(pgm_read_word(&mega::privat::pin_table[pin].tccrb))};
+        volatile uint16_t* ocr  {reinterpret_cast<volatile uint16_t*>(pgm_read_word(&mega::privat::pin_table[pin].ocr))};
+        uint8_t com_bit         {pgm_read_byte(&mega::privat::pin_table[pin].com_bit)};
+        uint8_t tccra_bits      {pgm_read_byte(&mega::privat::pin_table[pin].tccra_bits)};
+        uint8_t tccrb_bits      {pgm_read_byte(&mega::privat::pin_table[pin].tccrb_bits)};
+
+        uint8_t oldSREG{SREG};
+        cli();
+
+        if (val == 0) {
+            *tccra &= ~com_bit;
+            digitalWrite(pin, LOW);
+        } else if (val == 255) {
+            *tccra &= ~com_bit;
+            digitalWrite(pin, HIGH);
+        } else {
+            *tccra |= com_bit | tccra_bits;
+            *tccrb = tccrb_bits;
+            *ocr = val;
+        }
+
+        SREG = oldSREG;
+    }
+    uint32_t millis(void) {}
+    uint32_t micros(void) {}
+    void delay(uint32_t ms) {}
+    void delayMicroseconds(uint16_t us) {}
+    uint32_t pulseIn(uint8_t pin, bool state, uint32_t timeout) {}
+    uint32_t pulseInLong(uint8_t pin, bool state, uint32_t timeout) {}
+    uint32_t pulseIn(uint8_t pin, bool state, uint32_t timeout = 1000000L) {}
+    uint32_t pulseInLong(uint8_t pin, bool state, uint32_t timeout = 1000000L) {}
+
+    void tone(uint8_t pin, uint16_t frequency) {}
+    void tone(uint8_t pin, uint16_t frequency, uint32_t duration) {}
+    void noTone(uint8_t pin) {}
+
+    void attachInterrupt(uint8_t pin, func_ptr userFunc, uint8_t mode) {}
+    void detachInterrupt(uint8_t pin) {}
+}                                                    
