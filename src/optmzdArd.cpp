@@ -11,6 +11,8 @@
 // THIS COULD KILL OTHER LIBS if you uncomment '#define ENABLE_UNO_HIGH_RISK_HIGH_PRECISION_TIMER_0'
 // timer 0 zero will run on ctc NOT fast-pwm and kill pin 5 and 6, the Servo lib and others
 // #define ENABLE_UNO_HIGH_RISK_HIGH_PRECISION_TIMER_0
+// same thing here just for the timer 5 on mega
+// #define ENABLE_MEGA_HIGH_RISK_HIGH_PRECISION_TIMER_5
 
 namespace ard 
 {
@@ -348,11 +350,11 @@ namespace uno
 
         if (pin >= 8 && pin <= 13)
         {
-            uint8_t bit = (1 << (pin - 8));
+            uint8_t bit{(1 << (pin - 8))};
             uint8_t stateMask = state ? bit : 0;
             
-            uint32_t cycles = 0;
-            uint32_t maxCycles = timeout * (F_CPU / 1000000L) / 16;
+            uint32_t cycles{0};
+            uint32_t maxCycles{timeout * (F_CPU / 1000000L) / 16};
             
             while ((PINB & bit) == stateMask) {      // waiting for the unfinished pusle to finish so we can start with a new pulse
                 if (cycles++ >= maxCycles) {SREG = oldSREG; return 0;}; // other wise our calculated result might not be what the user wanted
@@ -363,7 +365,7 @@ namespace uno
             }
         
             // and now we can calculate the pulseCycles NOT US
-            uint32_t pulseCycles = 0;
+            uint32_t pulseCycles{0};
             while ((PINB & bit) == stateMask) {
                 if (pulseCycles++ >= maxCycles) {SREG = oldSREG; return 0;};
             }
@@ -375,12 +377,11 @@ namespace uno
         } 
         else if (pin >= 0 && pin <= 7) 
         {
-            uint8_t bit = (1 << pin);
-            uint8_t stateMask = state ? bit : 0;
+            uint8_t bit{(1 << pin)};
+            uint8_t stateMask{state ? bit : 0};
             
-            uint32_t cycles = 0;
-            
-            uint32_t maxCycles = timeout * (F_CPU / 1000000L) / 16;
+            uint32_t cycles{0};
+            uint32_t maxCycles{timeout * (F_CPU / 1000000L) / 16};
 
             while ((PIND & bit) == stateMask) {
                 if (cycles++ >= maxCycles) {SREG = oldSREG; return 0;}
@@ -389,7 +390,7 @@ namespace uno
                 if (cycles++ >= maxCycles) {SREG = oldSREG; return 0;}
             }
 
-            uint32_t pulseCycles = 0;
+            uint32_t pulseCycles{0};
             while ((PIND & bit) == stateMask) {
                 if (pulseCycles++ >= maxCycles) {SREG = oldSREG; return 0;}
             }
@@ -399,12 +400,11 @@ namespace uno
         }
         else if (pin >= 14 && pin <= 19) 
         {
-            uint8_t bit = (1 << (pin - 14));
-            uint8_t stateMask = state ? bit : 0;
+            uint8_t bit{(1 << (pin - 14))};
+            uint8_t stateMask{state ? bit : 0};
             
-            uint32_t cycles = 0;
-            
-            uint32_t maxCycles = timeout * (F_CPU / 1000000L) / 16;
+            uint32_t cycles{0};
+            uint32_t maxCycles{timeout * (F_CPU / 1000000L) / 16};
 
             while ((PINC & bit) == stateMask) {
                 if (cycles++ >= maxCycles) {SREG = oldSREG; return 0;}
@@ -413,7 +413,7 @@ namespace uno
                 if (cycles++ >= maxCycles) {SREG = oldSREG; return 0;}
             }
 
-            uint32_t pulseCycles = 0;
+            uint32_t pulseCycles{0};
             while ((PINC & bit) == stateMask) {
                 if (pulseCycles++ >= maxCycles) {SREG = oldSREG; return 0;}
             }
@@ -429,10 +429,10 @@ namespace uno
 
         if (pin >= 8 && pin <= 13) 
         {
-            uint8_t bit = (1 << (pin - 8));
-            uint8_t stateMask = state ? bit : 0;
+            uint8_t bit{(1 << (pin - 8))};
+            uint8_t stateMask{state ? bit : 0};
             
-            const uint32_t startMicros = uno::micros();
+            const uint32_t startMicros{uno::micros()};
 
             while ((PINB & bit) == stateMask) {
                 if (uno::micros() - startMicros >= timeout) {SREG = oldSREG; return 0;}
@@ -441,7 +441,7 @@ namespace uno
                 if (uno::micros() - startMicros >= timeout) {SREG = oldSREG; return 0;}
             }
 
-            const uint32_t pulseStart = uno::micros();
+            const uint32_t pulseStart{uno::micros()};
 
             while ((PINB & bit) == stateMask) {
                 if (uno::micros() - startMicros >= timeout) {SREG = oldSREG; return 0;}
@@ -452,9 +452,9 @@ namespace uno
         } 
         else if (pin >= 0 && pin <= 7) 
         {
-            uint8_t bit = (1 << pin);
-            uint8_t stateMask = state ? bit : 0;
-            const uint32_t startMicros = uno::micros();
+            uint8_t bit{(1 << pin)};
+            uint8_t stateMask{state ? bit : 0};
+            const uint32_t startMicros{uno::micros()};
 
             while ((PIND & bit) == stateMask) {
                 if (uno::micros() - startMicros >= timeout) {SREG = oldSREG; return 0;}
@@ -463,7 +463,7 @@ namespace uno
                 if (uno::micros() - startMicros >= timeout) {SREG = oldSREG; return 0;}
             }
 
-            const uint32_t pulseStart = uno::micros();
+            const uint32_t pulseStart{uno::micros()};
 
             while ((PIND & bit) == stateMask) {
                 if (uno::micros() - startMicros >= timeout) {SREG = oldSREG; return 0;}
@@ -474,9 +474,9 @@ namespace uno
         }
         else if (pin >= 14 && pin <= 19) 
         {
-            uint8_t bit = (1 << (pin - 14));
-            uint8_t stateMask = state ? bit : 0;
-            const uint32_t startMicros = uno::micros();
+            uint8_t bit{(1 << (pin - 14))};
+            uint8_t stateMask{state ? bit : 0};
+            const uint32_t startMicros{uno::micros()};
 
             while ((PINC & bit) == stateMask) {
                 if (uno::micros() - startMicros >= timeout) {SREG = oldSREG; return 0;}
@@ -485,7 +485,7 @@ namespace uno
                 if (uno::micros() - startMicros >= timeout) {SREG = oldSREG; return 0;}
             }
 
-            const uint32_t pulseStart = uno::micros();
+            const uint32_t pulseStart{uno::micros()};
 
             while ((PINC & bit) == stateMask) {
                 if (uno::micros() - startMicros >= timeout) {SREG = oldSREG; return 0;}
@@ -809,6 +809,12 @@ ISR(INT1_vect) {
 namespace mega {
     namespace privat 
     {
+        volatile uint32_t timer_overflow_count{0};
+        volatile uint8_t timer_fract{0};
+        volatile uint32_t timer_millis{0};
+        volatile uint8_t current_pin{};
+        volatile uint32_t toggle_count{};
+
         uint8_t analog_reference {0b01000000};
         const PinMap pin_table[70] PROGMEM = {
 
@@ -998,7 +1004,7 @@ namespace mega {
         bool has_pwm{pgm_read_byte(&mega::privat::pin_table[pin].has_pwm)};
         
         if (!has_pwm) {
-            digitalWrite(pin, (val <= 128) ? false : true);
+            mega::digitalWrite(pin, (val <= 128) ? false : true);
             return;
         }
 
@@ -1014,10 +1020,10 @@ namespace mega {
 
         if (val == 0) {
             *tccra &= ~com_bit;
-            digitalWrite(pin, LOW);
+            mega::digitalWrite(pin, LOW);
         } else if (val == 255) {
             *tccra &= ~com_bit;
-            digitalWrite(pin, HIGH);
+            mega::digitalWrite(pin, HIGH);
         } else {
             *tccra |= com_bit | tccra_bits;
             *tccrb = tccrb_bits;
@@ -1026,19 +1032,194 @@ namespace mega {
 
         SREG = oldSREG;
     }
-    uint32_t millis(void) {}
-    uint32_t micros(void) {}
-    void delay(uint32_t ms) {}
-    void delayMicroseconds(uint16_t us) {}
-    uint32_t pulseIn(uint8_t pin, bool state, uint32_t timeout) {}
-    uint32_t pulseInLong(uint8_t pin, bool state, uint32_t timeout) {}
-    uint32_t pulseIn(uint8_t pin, bool state, uint32_t timeout = 1000000L) {}
-    uint32_t pulseInLong(uint8_t pin, bool state, uint32_t timeout = 1000000L) {}
+    uint32_t millis(void) {
+        uint8_t oldSREG{SREG};
+        cli();
+        uint32_t ms{mega::privat::timer_millis};
+        SREG = oldSREG;
+        return ms;
+    }
+    uint32_t micros(void) {
+        uint8_t oldSREG{SREG};
+        cli();
 
-    void tone(uint8_t pin, uint16_t frequency) {}
-    void tone(uint8_t pin, uint16_t frequency, uint32_t duration) {}
+        uint32_t ms{mega::privat::timer_millis};
+        #ifdef ENABLE_MEGA_HIGH_RISK_HIGH_PRECISION_TIMER_5
+            uint16_t t{TCNT5};
+
+            if ((TIFR5 & (1 << OCF5A)) && (t < 249)) {
+                ms++;
+            }
+            SREG = oldSREG;
+            return (ms * 1000UL) + (t * 4UL);
+        #else
+            uint8_t t{TCNT0};
+            if ((TIFR0 & (1 << TOV0)) && (t < 255)) {
+                ms++;
+            }
+            SREG = oldSREG;
+            return (((ms << 8) + t) * 4);
+        #endif
+    }
+    void delay(uint32_t ms) {
+        uint32_t temp{mega::millis()};
+        while (mega::millis() - temp < ms)
+            ;
+    }
+    void delayMicroseconds(uint16_t us) {
+        while (us--) {
+            _delay_us(1);
+        }
+    }
+    uint32_t pulseIn(uint8_t pin, bool state, uint32_t timeout)
+    {
+        uint8_t oldSREG{SREG};
+        cli();
+
+        volatile uint8_t* pin_reg{reinterpret_cast<volatile uint8_t *>(pgm_read_word(&mega::privat::pin_table[pin].pin_reg))};
+        uint8_t bit{pgm_read_byte(mega::privat::pin_table[pin].mask)};
+
+        uint8_t stateMask{state ? bit : 0};
+        
+        uint32_t cycles{0};
+        uint32_t maxCycles{timeout * (F_CPU / 1000000L) / 16};
+        
+        while ((*pin_reg & bit) == stateMask) { 
+            if (cycles++ >= maxCycles) {SREG = oldSREG; return 0;};
+        }
+        
+        while ((*pin_reg & bit) != stateMask) {
+            if (cycles++ >= maxCycles) {SREG = oldSREG; return 0;};
+        }
+    
+        uint32_t pulseCycles{0};
+        while ((*pin_reg & bit) == stateMask) {
+            if (pulseCycles++ >= maxCycles) {SREG = oldSREG; return 0;};
+        }
+    
+        SREG = oldSREG;
+        return (pulseCycles * 16) / (F_CPU / 1000000L);
+    }
+    uint32_t pulseInLong(uint8_t pin, bool state, uint32_t timeout) 
+    {
+        uint8_t oldSREG{SREG};
+        cli();
+
+        volatile uint8_t* pin_reg{reinterpret_cast<volatile uint8_t *>(pgm_read_word(&mega::privat::pin_table[pin].pin_reg))};
+        uint8_t bit{pgm_read_byte(mega::privat::pin_table[pin].mask)};
+        
+        uint8_t stateMask{state ? bit : 0};
+        const uint32_t startMicros{mega::micros()};
+
+        while ((*pin_reg & bit) == stateMask) {
+            if (mega::micros() - startMicros >= timeout) {SREG = oldSREG; return 0;}
+        }
+        while ((*pin_reg & bit) != stateMask) {
+            if (mega::micros() - startMicros >= timeout) {SREG = oldSREG; return 0;}
+        }
+
+        const uint32_t pulseStart{mega::micros()};
+
+        while ((*pin_reg & bit) == stateMask) {
+            if (mega::micros() - startMicros >= timeout) {SREG = oldSREG; return 0;}
+        }
+
+        SREG = oldSREG;
+        return mega::micros() - pulseStart; 
+    }
+
+    void tone(uint8_t pin, uint16_t frequency)
+    {
+        if (frequency < 31) { TIMSK2 &= ~(1 << OCIE2A); mega::digitalWrite(pin ,_LOW); return; }
+        mega::privat::current_pin = pin;
+        mega::pinMode(pin, _OUTPUT);
+
+        uint32_t prescaler = (frequency < 244) ? 1024 : (frequency < 488) ? 256 :
+                             (frequency < 976) ? 128  : (frequency < 1953) ? 64 :
+                             (frequency < 7812) ? 32  : 8; 
+        uint8_t presBit    = (frequency < 244)  ? ((1 << CS22) | (1 << CS21) | (1 << CS20)) :
+                             (frequency < 488)  ? ((1 << CS22) | (1 << CS21)) :
+                             (frequency < 976)  ? ((1 << CS22) | (1 << CS20)) :
+                             (frequency < 1953) ? (1 << CS22) :
+                             (frequency < 7812) ? ((1 << CS21) | (1 << CS20)) : (1 << CS21);
+
+        TCCR2A = (1 << WGM21);
+        TCCR2B = presBit;
+        OCR2A = static_cast<uint8_t>((16000000UL / (2UL * prescaler * frequency)) - 1);
+        TIMSK2 |= (1 << OCIE2A);
+    }
+    void tone(uint8_t pin, uint16_t frequency, uint32_t duration) {
+        mega::tone(pin, frequency);
+
+        if (duration > 0) {
+            mega::privat::toggle_count = (2UL * frequency * duration) / 1000UL;
+        } else {
+            mega::privat::toggle_count = 0;
+        }
+    }
     void noTone(uint8_t pin) {}
 
     void attachInterrupt(uint8_t pin, func_ptr userFunc, uint8_t mode) {}
     void detachInterrupt(uint8_t pin) {}
-}                                                    
+
+
+    void initTimer(void) {
+        #ifdef ENABLE_MEGA_HIGH_RISK_HIGH_PRECISION_TIMER_5
+            uint8_t oldSREG{SREG};
+            cli();
+            
+            TCCR5A = 0; 
+            TCCR5B = (1 << WGM52) | (1 << CS51) | (1 << CS50);
+
+            OCR5A = 249;
+
+            TIMSK5 |= (1 << OCIE5A);
+
+            SREG = oldSREG;
+        #else
+            uint8_t oldSREG{SREG};
+            cli();
+            TCCR0A = (1 << WGM01) | (1 << WGM00); // fast pwm NOT ctc (safe)
+            TCCR0B = (1 << CS01) | (1 << CS00);   
+        
+            TIMSK0 |= (1 << TOIE0);
+            SREG = oldSREG;
+        #endif
+    }
+}
+
+#ifdef ENABLE_MEGA_HIGH_RISK_HIGH_PRECISION_TIMER_5
+    ISR(TIMER5_COMPA_vect) {
+        mega::privat::timer_millis++;
+    }
+#else
+    ISR(TIMER0_OVF_vect) {
+        mega::privat::timer_overflow_count++;
+        uint32_t m{mega::privat::timer_millis};
+        uint8_t f{mega::privat::timer_fract};
+
+        m += 1;
+        f += 3; // theres alittle error this is just the correction
+        if (f >= 125) {
+            f -= 125;
+            m += 1;
+        }
+
+        mega::privat::timer_fract = f;
+        mega::privat::timer_millis = m;
+    }
+    
+#endif
+
+ISR(TIMER2_COMPA_vect) { 
+    mega::digitalWrite(mega::privat::current_pin, !mega::digitalRead(mega::privat::current_pin));
+
+    if (mega::privat::toggle_count > 0) {
+        mega::privat::toggle_count--;
+        
+        if (mega::privat::toggle_count == 0) {
+            TIMSK2 &= ~(1 << OCIE2A);
+            mega::digitalWrite(mega::privat::current_pin, LOW);
+        }
+    } 
+} 

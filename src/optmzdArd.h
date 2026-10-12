@@ -171,6 +171,12 @@ namespace uno
 namespace mega {
     namespace privat
     {
+        extern volatile uint32_t timer_millis;
+        extern volatile uint32_t timer_overflow_count;
+        extern volatile uint32_t timer_fract;
+        extern volatile uint8_t current_pin;
+        extern volatile uint32_t toggle_count;
+
         struct PinMap {
             volatile uint8_t* port;
             volatile uint8_t* ddr;
