@@ -1,0 +1,172 @@
+#include <Arduino.h> // clang-format off
+/*
+'  _______   _______                                           _______   _______   _______   _______ 
+' |       | |       |  _______   _______   ________  _______  | ___   | |    ___| |   ____| |   __  |
+' |   |   | └-┐   ┌-┘ |       | |       | |   __  | |____   | └─'__|  | |___    | |  └----┐ |  | ╱| |
+' |       |   |   |   |  |  | | |   ' __| |     __| |   .   |  ╱  ____|  ___│   | |  [ ]  | |  |╱_| |
+' |___|___|   |___|   |__|__|_| |_______| ┌' __'──┐ |_____|_| |_______| |_______| |_______| |_______|
+'                                         |_______|                                        
+'
+'  _______   _______   ________  _______ 
+' |       | |       | |   __  | |____   |
+' |  |  | | |   ' __| |     __| |   .   |
+' |__|__|_| |_______| ┌' __'──┐ |_____|_|
+'                     |_______|          
+*/
+
+/*
+  IF THIS IS YOUR FIRST EXPLAINATION FILE YOUR IN THE RIGHT PLACE THIS IS EXPLAINATION FILE NUMBER 1
+  if you wanna learn more this is the road map or take a look at the ATmega2560 datasheet by ATMEL:
+  portsMega -> analogMega -> timerMega -> interruptsMega
+  .
+  this file is a explaination file and is not needed for the optmzdArd lib delete at your will
+  sorry if there are some grammatical mistakes im not good with languages not even in my mother-langueage (german)
+  i make many easy mistakes but just so you know i've tried my best
+*/
+
+/*
+  alright this alittle more weird then in the portsUno file because we have not only 3 ports and we have
+  69 pin slapped accros all ports in weird order so a simple if statement with some else if's wont cut it
+  BUT there is a other way and looks pretty simular to the original Arduino Core functions. the main idea is
+  basicly the 'same' as in the templetes variants. first we make a large struct with all needed regs/bits and
+  make a array of these structs the index is the pin so index 3 is pin 3. but if we would do that in memory
+  the arduino would be almost at it limit (not realy but still its valuble memory) and that would be bad
+  thats why we store it in 'flash'. you can interpret it as an storage thingy for your arduino (technicly your desktop
+  has a flash too in the uefi/bios chip for example but in x86 cpp we dont do anything with it) it doesnt wipe
+  everything if you deplug your arduino (thats hoiw the EEPROM lib works) Arduino Core gives us the 'keyword''PROGMEM'
+  cuz thats how these are called with which we can do the saving thing into flash
+  
+  here is how we would do it:
+*/
+namespace portsMega { 
+
+struct PinMap { // our stuct with all the data we need
+    volatile uint8_t* port;    // this is a register therefore we need to 'share' it with '&' and use it with a pointer ('*')
+    volatile uint8_t* ddr;     // this is a register therefore we need to 'share' it with '&' and use it with a pointer ('*')
+    volatile uint8_t* pin_reg; // this is a register therefore we need to 'share' it with '&' and use it with a pointer ('*')
+    uint8_t mask;              // this are just bits so we can just save it.
+
+    bool has_pwm;            // semi nassary for digitalWrite ('turnOffPwm')
+    volatile uint8_t* tccra; // (not nassary for digital... but for analog) 
+    volatile uint8_t* tccrb; // (not nassary for digital... but for analog) 
+    volatile uint16_t* ocr;  // (not nassary for digital... but for analog) 
+    uint8_t com_bit;         // (not nassary for digital... but for analog) 
+    uint8_t tccra_bits;      // (not nassary for digital... but for analog) 
+    uint8_t tccrb_bits;      // (not nassary for digital... but for analog) 
+};
+
+// after we made our stuct with data we need we can finaly make our array list thingy:
+const PinMap pin_table[70] PROGMEM = { // dont foreget PROGMEM or it will be saved in memory
+    { &PORTE, &DDRE, &PINE, _BV(0), false, 0, 0, 0, 0, 0, 0 }, // pin 0 index 0
+    { &PORTE, &DDRE, &PINE, _BV(1), false, 0, 0, 0, 0, 0, 0 }, // pin 1 index 1
+    { &PORTE, &DDRE, &PINE, _BV(4), true,  &TCCR3A, &TCCR3B, (volatile uint16_t*)&OCR3B, (1 << COM3B1), 0x01, 0x0B }, // pin 2 index 2
+    { &PORTE, &DDRE, &PINE, _BV(5), true,  &TCCR3A, &TCCR3B, (volatile uint16_t*)&OCR3C, (1 << COM3C1), 0x01, 0x0B }, // pin 3 index 3
+    { &PORTG, &DDRG, &PING, _BV(5), true,  &TCCR0A, &TCCR0B, (volatile uint16_t*)&OCR0B, (1 << COM0B1), 0x03, 0x03 }, // pin 4 index 4
+    { &PORTE, &DDRE, &PINE, _BV(3), true,  &TCCR3A, &TCCR3B, (volatile uint16_t*)&OCR3A, (1 << COM3A1), 0x01, 0x0B }, // pin 5 index 5
+    { &PORTH, &DDRH, &PINH, _BV(3), true,  &TCCR4A, &TCCR4B, (volatile uint16_t*)&OCR4A, (1 << COM4A1), 0x01, 0x0B }, // pin 6 index 6
+    { &PORTH, &DDRH, &PINH, _BV(4), true,  &TCCR4A, &TCCR4B, (volatile uint16_t*)&OCR4B, (1 << COM4B1), 0x01, 0x0B }, // pin 7 index 7
+    { &PORTH, &DDRH, &PINH, _BV(5), true,  &TCCR4A, &TCCR4B, (volatile uint16_t*)&OCR4C, (1 << COM4C1), 0x01, 0x0B }, // pin 8 index 8
+    { &PORTH, &DDRH, &PINH, _BV(6), true,  &TCCR2A, &TCCR2B, (volatile uint16_t*)&OCR2B, (1 << COM2B1), 0x03, 0x04 }, // pin 9 index 9
+    { &PORTB, &DDRB, &PINB, _BV(4), true,  &TCCR2A, &TCCR2B, (volatile uint16_t*)&OCR2A, (1 << COM2A1), 0x03, 0x04 }, // pin 10 index 10
+    { &PORTB, &DDRB, &PINB, _BV(5), true,  &TCCR1A, &TCCR1B, (volatile uint16_t*)&OCR1A, (1 << COM1A1), 0x01, 0x0B }, // pin 11 index 11
+    { &PORTB, &DDRB, &PINB, _BV(6), true,  &TCCR1A, &TCCR1B, (volatile uint16_t*)&OCR1B, (1 << COM1B1), 0x01, 0x0B }, // pin 12 index 12
+    { &PORTB, &DDRB, &PINB, _BV(7), true,  &TCCR0A, &TCCR0B, (volatile uint16_t*)&OCR0A, (1 << COM0A1), 0x03, 0x03 }, // pin 13 index 13
+ //
+    { &PORTJ, &DDRJ, &PINJ, _BV(1), false, 0, 0, 0, 0, 0, 0 }, // i wanted to do it for the whole list but i
+    { &PORTJ, &DDRJ, &PINJ, _BV(0), false, 0, 0, 0, 0, 0, 0 }, // think you get what i mean
+    { &PORTH, &DDRH, &PINH, _BV(1), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTH, &DDRH, &PINH, _BV(0), false, 0, 0, 0, 0, 0, 0 }, // if you wanna look for your self if these
+    { &PORTD, &DDRD, &PIND, _BV(3), false, 0, 0, 0, 0, 0, 0 }, // values are correct take a look at ATMELS
+    { &PORTD, &DDRD, &PIND, _BV(2), false, 0, 0, 0, 0, 0, 0 }, // ATmega2560 Datasheet good luck
+    { &PORTD, &DDRD, &PIND, _BV(1), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTD, &DDRD, &PIND, _BV(0), false, 0, 0, 0, 0, 0, 0 }, //
+ //
+    { &PORTA, &DDRA, &PINA, _BV(0), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTA, &DDRA, &PINA, _BV(1), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTA, &DDRA, &PINA, _BV(2), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTA, &DDRA, &PINA, _BV(3), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTA, &DDRA, &PINA, _BV(4), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTA, &DDRA, &PINA, _BV(5), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTA, &DDRA, &PINA, _BV(6), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTA, &DDRA, &PINA, _BV(7), false, 0, 0, 0, 0, 0, 0 }, //
+ //
+    { &PORTC, &DDRC, &PINC, _BV(7), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTC, &DDRC, &PINC, _BV(6), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTC, &DDRC, &PINC, _BV(5), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTC, &DDRC, &PINC, _BV(4), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTC, &DDRC, &PINC, _BV(3), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTC, &DDRC, &PINC, _BV(2), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTC, &DDRC, &PINC, _BV(1), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTC, &DDRC, &PINC, _BV(0), false, 0, 0, 0, 0, 0, 0 }, //
+ //
+    { &PORTD, &DDRD, &PIND, _BV(7), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTG, &DDRG, &PING, _BV(2), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTG, &DDRG, &PING, _BV(1), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTG, &DDRG, &PING, _BV(0), false, 0, 0, 0, 0, 0, 0 }, //
+ //
+    { &PORTL, &DDRL, &PINL, _BV(7), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTL, &DDRL, &PINL, _BV(6), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTL, &DDRL, &PINL, _BV(5), true,  &TCCR5A, &TCCR5B, (volatile uint16_t*)&OCR5C, (1 << COM5C1), 0x01, 0x0B }, //
+    { &PORTL, &DDRL, &PINL, _BV(4), true,  &TCCR5A, &TCCR5B, (volatile uint16_t*)&OCR5B, (1 << COM5B1), 0x01, 0x0B }, //
+    { &PORTL, &DDRL, &PINL, _BV(3), true,  &TCCR5A, &TCCR5B, (volatile uint16_t*)&OCR5A, (1 << COM5A1), 0x01, 0x0B }, //
+    { &PORTL, &DDRL, &PINL, _BV(2), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTL, &DDRL, &PINL, _BV(1), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTL, &DDRL, &PINL, _BV(0), false, 0, 0, 0, 0, 0, 0 }, //
+ //
+    { &PORTB, &DDRB, &PINB, _BV(3), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTB, &DDRB, &PINB, _BV(2), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTB, &DDRB, &PINB, _BV(1), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTB, &DDRB, &PINB, _BV(0), false, 0, 0, 0, 0, 0, 0 }, //
+ //
+    { &PORTF, &DDRF, &PINF, _BV(0), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTF, &DDRF, &PINF, _BV(1), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTF, &DDRF, &PINF, _BV(2), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTF, &DDRF, &PINF, _BV(3), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTF, &DDRF, &PINF, _BV(4), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTF, &DDRF, &PINF, _BV(5), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTF, &DDRF, &PINF, _BV(6), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTF, &DDRF, &PINF, _BV(7), false, 0, 0, 0, 0, 0, 0 }, //
+ //
+    { &PORTK, &DDRK, &PINK, _BV(0), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTK, &DDRK, &PINK, _BV(1), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTK, &DDRK, &PINK, _BV(2), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTK, &DDRK, &PINK, _BV(3), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTK, &DDRK, &PINK, _BV(4), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTK, &DDRK, &PINK, _BV(5), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTK, &DDRK, &PINK, _BV(6), false, 0, 0, 0, 0, 0, 0 }, //
+    { &PORTK, &DDRK, &PINK, _BV(7), false, 0, 0, 0, 0, 0, 0 } //
+};
+/*
+  alright now that we have the knowlage to save into flash we need to know how to read and use the date from
+  flash in memory cuz thats were our code will run and for that Arduino Core again has some functions or macro?
+  i dont know what they are called tbh but its a function but is written as a macro with \ to write a new a line
+  BUT thats not important just ask ai or something but to read/use we use pgm_read_byte, pgm_read_word, pgm_read_dword and
+  pgm_read_qword. when do you use what you may ask? well its pretty simpel byte if your reg you need is 8bit word if your
+  register is 16bit and so on. thats btw not some random ahhh thing but actualy how we describe 16 bit just like we 
+  describe 8bit as a byte an dword just stands for double word and qword for quad word crazy ik.
+
+  here is digitalWrite as an example:
+*/
+void digitalWrite(uint8_t pin, bool val)
+{
+    // this look more complicated than it is looks we just make pointer that points to a register
+    // and because a register isnt just accesably trough memory we need a volatule uintbit_t * and pass the
+    // register through reference
+    volatile uint8_t* port_p { reinterpret_cast<volatile uint8_t*>(pgm_read_byte(&pin_table[pin].port)) };
+    uint8_t mask {pgm_read_byte(pin_table[pin].mask)};
+
+    if (val) { // the rest is just like we know it thats it
+        *port_p |= mask;
+    } else {
+        *port_p &=~ mask;
+    } 
+}
+/*
+  alright thats it for this file if you wanna know how to do digitalRead i encourage you to try to program it
+  your self (tipp: you need the .pin to get the reg (because the reg is called PINx the var is called pin dont
+  mistake as just the pin number ))
+  if you wanna know more about the mega take a look at the ATmega2560 datasheet by ATMEL or continue this 
+  explaination file series with analogMega. 
+  .                                    happy coding :)
+*/
+}
