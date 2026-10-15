@@ -1,0 +1,251 @@
+#include <Arduino.h> // clang-format off
+/*
+'  _______   _______                                           _______   _______   _______   _______ 
+' |       | |       |  _______   _______   ________  _______  | ___   | |    ___| |   ____| |   __  |
+' |   |   | └-┐   ┌-┘ |       | |       | |   __  | |____   | └─'__|  | |___    | |  └----┐ |  | ╱| |
+' |       |   |   |   |  |  | | |   ' __| |     __| |   .   |  ╱  ____|  ___│   | |  [ ]  | |  |╱_| |
+' |___|___|   |___|   |__|__|_| |_______| ┌' __'──┐ |_____|_| |_______| |_______| |_______| |_______|
+'                                         |_______|                                        
+'
+'  _______   _______   ________  _______ 
+' |       | |       | |   __  | |____   |
+' |  |  | | |   ' __| |     __| |   .   |
+' |__|__|_| |_______| ┌' __'──┐ |_____|_|
+'                     |_______|          
+*/
+
+/*
+  IF THIS IS YOUR FIRST EXPLAINATION FILE YOUR IN THE WRONG PLACE THIS IS EXPLAINATION FILE NUMBER 2
+  if you wanna learn more this is the road map start at portsMega or take a look at the ATmega2560 datasheet by ATMEL:
+  portsMega -> analogMega -> timerMega -> interruptsMega
+  .
+  this file is a explaination file and is not needed for the optmzdArd lib delete at your will
+  sorry if there are some grammatical mistakes im not good with languages not even in my mother-langueage (german)
+  i make many easy mistakes but just so you know i've tried my best
+*/
+
+/*
+  alright the ATmega2560 is chip with very many pins as you might have noticed already but the main
+  idea of the ARmega380P can be used here almost 1 to 1 so if you DIDNT read analogUno that first
+  IMPORTANT : if you want to code a analogRefrence function just keep in mind that there is one more 
+  'mode' compared to uno here is the tabel for everything you need to know for analogReference:
+    mode         REFS1    REFS0   binarybitmask(ADMUX)   Spannung
+    EXTERNAL       0        0          0b00000000        AREF-pin
+    DEFAULT        0        1          0b01000000        VCC (5V)
+    INTERNAL1V1    1        0          0b10000000        internal 1,1 V
+    INTERNAL2V56   1        1          0b11000000        internal 2,56 V
+
+  alright thats enough for now let get straight into coding analogRead i will explain
+  things we have to change compared to unos analogRead but dont worry its mostly the same
+*/
+namespace analogMega {
+
+uint8_t analogRead(uint8_t pin)
+{
+    uint8_t channel {pin - 54}; // megas analog pins start at 54 so just subtract that so we get the 
+                                // channel (we have to edit it later but its nicer to write
+                                // channel - 8 instead of channel - 62 cuz nobody will get why -62)
+
+    if (channel > 15) {return 0;} // if its not an analog pin just return
+
+    uint8_t oldSREG = SREG;
+    cli();
+
+    // this is new now as may have oticed the 16 pins dont fit in a byte therfore
+    // we cant just use ONE DIDR and the mega has for this very reason DIDR2 here you can
+    // deactivate the other 8bits / pins (DIDR1 is also a thing but is used by the comperator)
+    if (channel >= 8) {
+        ADCSRB |= (1 << MUX5); // this seems very unassary but if you look closly you notice that MUX5
+                               // IS NOT in ADMUX therefore syou need to do this weird thing
+        ADMUX = 0b01000000 | ((channel - 8) & 0x07); // because MUX 5 is in binary '8' we have to remove the '8' in channel
+                                                     // thats why we do a -8 and 0x07 is just a extra safty masurement but
+                                                     // is technicly not nassary
+        DIDR2 |= (1 << (channel - 8)); // pertty self explainatory we need to do -8 because now its a new byte which start at 0 NOT 8
+    } else {
+        ADCSRB &= ~(1 << MUX5);
+        ADMUX = 0b01000000 | (channel & 0x07);
+        DIDR0 |= (1 << channel);
+    }
+
+    // the rest is pretty much the same as the uno versions evern the same registers
+    ADCSRA = (1 << ADEN) | (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
+
+    ADCSRA |= (1 << ADSC);
+    SREG = oldSREG;
+    while (ADCSRA & (1 << ADSC))
+        ;
+
+    if (channel >= 8) { // this is the only diffrence just like before we need to disable
+        DIDR2 &= ~(1 << (channel - 8)); // DIDR for both registers
+    } else {
+        DIDR0 &= ~(1 << channel);
+    }
+
+    return ADC;
+}
+
+/*
+  alright next up is analogWrite and as you may have noticed there are WAY more pins if you would do the same thing
+  as in uno with a switch you'd probably go insane therefore we need to make a PROGMEM just like in portsMega
+  BUT with all the ocr pins aswell than we can easly just use the look up tabel if you wanna do it with a switch tho
+  here is a tabel for every pin with timer control reg and the com bits with ocra reg. timer 2 CS bits are weird just like on the uno
+  and WGM bits vary depended if it is a 8bit or 16bit timer JUST LIKE ON THE UNO
+  (but i've heared a switch get automatical converted to a if by the avr compiler but tbh im not 100 % sure thats why i made the lookup tabel):
+  (this took me forever btw)
+   _____ _____ __________________ _________________ ________ _______ ______ ______ ______ _______________ _______________ _______________ _______________ ____________ ____________ 
+  | pin | bit |      timer       |       TCRR      | COMnx1 |  OCR  | CSx2 | CSx1 | CSx0 | WGMx3(TCCRxB) | WGMx2(TCCRxB) | WGMx1(TCCRxA) | WGMx0(TCCRxA) | TCCRA bits | TCCRB bits |
+  |-----|-----|------------------|-----------------|--------|-------|------|------|------|---------------|---------------|---------------|---------------|------------|------------|
+  |  2  | PE4 | timer 3 (16-Bit) | TCCR3A / TCCR3B | COM3B1 | OCR3B |  ~0  | CS31 | CS30 |      ~0       |     WGM32     |      ~0       |     WGM30     |    0x21    |    0x0b    |
+  |  3  | PE5 | timer 3 (16-Bit) | TCCR3A / TCCR3B | COM3C1 | OCR3C |  ~0  | CS31 | CS30 |      ~0       |     WGM32     |      ~0       |     WGM30     |    0x09    |    0x0b    |
+  |  4  | PG5 | timer 0 (8-Bit)  | TCCR0A / TCCR0B | COM0B1 | OCR0B |  ~0  | CS01 | CS00 |       ~       |      ~0       |     WGM01     |     WGM00     |    0x23    |    0x03    |
+  |  5  | PE3 | timer 3 (16-Bit) | TCCR3A / TCCR3B | COM3A1 | OCR3A |  ~0  | CS31 | CS30 |      ~0       |     WGM32     |      ~0       |     WGM30     |    0x81    |    0x0b    |
+  |  6  | PH3 | timer 4 (16-Bit) | TCCR4A / TCCR4B | COM4A1 | OCR4A |  ~0  | CS41 | CS40 |      ~0       |     WGM42     |      ~0       |     WGM40     |    0x81    |    0x0b    |
+  |  7  | PH4 | timer 4 (16-Bit) | TCCR4A / TCCR4B | COM4B1 | OCR4B |  ~0  | CS41 | CS40 |      ~0       |     WGM42     |      ~0       |     WGM40     |    0x21    |    0x0b    |
+  |  8  | PH5 | timer 4 (16-Bit) | TCCR4A / TCCR4B | COM4C1 | OCR4C |  ~0  | CS41 | CS40 |      ~0       |     WGM42     |      ~0       |     WGM40     |    0x09    |    0x0b    |
+  |  9  | PH6 | timer 2 (8-Bit)  | TCCR2A / TCCR2B | COM2B1 | OCR2B | CS22 |  ~0  |  ~0  |       ~       |      ~0       |     WGM21     |     WGM20     |    0x23    |    0x04    |
+  |  10 | PB4 | timer 2 (8-Bit)  | TCCR2A / TCCR2B | COM2A1 | OCR2A | CS22 |  ~0  |  ~0  |       ~       |      ~0       |     WGM21     |     WGM20     |    0x83    |    0x04    |
+  |  11 | PB5 | timer 1 (16-Bit) | TCCR1A / TCCR1B | COM1A1 | OCR1A |  ~0  | CS11 | CS10 |      ~0       |     WGM12     |      ~0       |     WGM10     |    0x81    |    0x0b    |
+  |  12 | PB6 | timer 1 (16-Bit) | TCCR1A / TCCR1B | COM1B1 | OCR1B |  ~0  | CS11 | CS10 |      ~0       |     WGM12     |      ~0       |     WGM10     |    0x21    |    0x0b    |
+  |  13 | PB7 | timer 0 (8-Bit)  | TCCR0A / TCCR0B | COM0A1 | OCR0A |  ~0  | CS01 | CS00 |       ~       |      ~0       |     WGM01     |     WGM00     |    0x83    |    0x03    |
+  |  44 | PL5 | timer 5 (16-Bit) | TCCR5A / TCCR5B | COM5C1 | OCR5C |  ~0  | CS51 | CS50 |      ~0       |     WGM52     |      ~0       |     WGM50     |    0x09    |    0x0b    |
+  |  45 | PL4 | timer 5 (16-Bit) | TCCR5A / TCCR5B | COM5B1 | OCR5B |  ~0  | CS51 | CS50 |      ~0       |     WGM52     |      ~0       |     WGM50     |    0x21    |    0x0b    |
+  |  46 | PL3 | timer 5 (16-Bit) | TCCR5A / TCCR5B | COM5A1 | OCR5A |  ~0  | CS51 | CS50 |      ~0       |     WGM52     |      ~0       |     WGM50     |    0x81    |    0x0b    |
+
+*/
+struct PinMap {
+    volatile uint8_t* port;
+    volatile uint8_t* ddr;
+    volatile uint8_t* pin_reg;
+    uint8_t mask;
+
+    bool has_pwm;
+    volatile uint8_t* tccra;
+    volatile uint8_t* tccrb;
+    volatile uint16_t* ocr;
+    uint8_t com_bit;
+    uint8_t tccra_bits;
+    uint8_t tccrb_bits;
+};
+const PinMap pin_table[70] PROGMEM = {
+    { &PORTE, &DDRE, &PINE, _BV(0), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTE, &DDRE, &PINE, _BV(1), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTE, &DDRE, &PINE, _BV(4), true,  &TCCR3A, &TCCR3B, (volatile uint16_t*)&OCR3B, (1 << COM3B1), 0x01, 0x0B },
+    { &PORTE, &DDRE, &PINE, _BV(5), true,  &TCCR3A, &TCCR3B, (volatile uint16_t*)&OCR3C, (1 << COM3C1), 0x01, 0x0B },
+    { &PORTG, &DDRG, &PING, _BV(5), true,  &TCCR0A, &TCCR0B, (volatile uint16_t*)&OCR0B, (1 << COM0B1), 0x03, 0x03 },
+    { &PORTE, &DDRE, &PINE, _BV(3), true,  &TCCR3A, &TCCR3B, (volatile uint16_t*)&OCR3A, (1 << COM3A1), 0x01, 0x0B },
+    { &PORTH, &DDRH, &PINH, _BV(3), true,  &TCCR4A, &TCCR4B, (volatile uint16_t*)&OCR4A, (1 << COM4A1), 0x01, 0x0B },
+    { &PORTH, &DDRH, &PINH, _BV(4), true,  &TCCR4A, &TCCR4B, (volatile uint16_t*)&OCR4B, (1 << COM4B1), 0x01, 0x0B },
+    { &PORTH, &DDRH, &PINH, _BV(5), true,  &TCCR4A, &TCCR4B, (volatile uint16_t*)&OCR4C, (1 << COM4C1), 0x01, 0x0B },
+    { &PORTH, &DDRH, &PINH, _BV(6), true,  &TCCR2A, &TCCR2B, (volatile uint16_t*)&OCR2B, (1 << COM2B1), 0x03, 0x04 },
+    { &PORTB, &DDRB, &PINB, _BV(4), true,  &TCCR2A, &TCCR2B, (volatile uint16_t*)&OCR2A, (1 << COM2A1), 0x03, 0x04 },
+    { &PORTB, &DDRB, &PINB, _BV(5), true,  &TCCR1A, &TCCR1B, (volatile uint16_t*)&OCR1A, (1 << COM1A1), 0x01, 0x0B },
+    { &PORTB, &DDRB, &PINB, _BV(6), true,  &TCCR1A, &TCCR1B, (volatile uint16_t*)&OCR1B, (1 << COM1B1), 0x01, 0x0B },
+    { &PORTB, &DDRB, &PINB, _BV(7), true,  &TCCR0A, &TCCR0B, (volatile uint16_t*)&OCR0A, (1 << COM0A1), 0x03, 0x03 },
+
+    { &PORTJ, &DDRJ, &PINJ, _BV(1), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTJ, &DDRJ, &PINJ, _BV(0), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTH, &DDRH, &PINH, _BV(1), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTH, &DDRH, &PINH, _BV(0), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTD, &DDRD, &PIND, _BV(3), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTD, &DDRD, &PIND, _BV(2), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTD, &DDRD, &PIND, _BV(1), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTD, &DDRD, &PIND, _BV(0), false, 0, 0, 0, 0, 0, 0 },
+
+    { &PORTA, &DDRA, &PINA, _BV(0), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTA, &DDRA, &PINA, _BV(1), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTA, &DDRA, &PINA, _BV(2), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTA, &DDRA, &PINA, _BV(3), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTA, &DDRA, &PINA, _BV(4), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTA, &DDRA, &PINA, _BV(5), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTA, &DDRA, &PINA, _BV(6), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTA, &DDRA, &PINA, _BV(7), false, 0, 0, 0, 0, 0, 0 },
+
+    { &PORTC, &DDRC, &PINC, _BV(7), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTC, &DDRC, &PINC, _BV(6), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTC, &DDRC, &PINC, _BV(5), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTC, &DDRC, &PINC, _BV(4), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTC, &DDRC, &PINC, _BV(3), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTC, &DDRC, &PINC, _BV(2), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTC, &DDRC, &PINC, _BV(1), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTC, &DDRC, &PINC, _BV(0), false, 0, 0, 0, 0, 0, 0 },
+
+    { &PORTD, &DDRD, &PIND, _BV(7), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTG, &DDRG, &PING, _BV(2), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTG, &DDRG, &PING, _BV(1), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTG, &DDRG, &PING, _BV(0), false, 0, 0, 0, 0, 0, 0 },
+
+    { &PORTL, &DDRL, &PINL, _BV(7), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTL, &DDRL, &PINL, _BV(6), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTL, &DDRL, &PINL, _BV(5), true,  &TCCR5A, &TCCR5B, (volatile uint16_t*)&OCR5C, (1 << COM5C1), 0x01, 0x0B }, // 44: PL5 (PWM, Timer 5C)
+    { &PORTL, &DDRL, &PINL, _BV(4), true,  &TCCR5A, &TCCR5B, (volatile uint16_t*)&OCR5B, (1 << COM5B1), 0x01, 0x0B }, // 45: PL4 (PWM, Timer 5B)
+    { &PORTL, &DDRL, &PINL, _BV(3), true,  &TCCR5A, &TCCR5B, (volatile uint16_t*)&OCR5A, (1 << COM5A1), 0x01, 0x0B }, // 46: PL3 (PWM, Timer 5A)
+    { &PORTL, &DDRL, &PINL, _BV(2), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTL, &DDRL, &PINL, _BV(1), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTL, &DDRL, &PINL, _BV(0), false, 0, 0, 0, 0, 0, 0 },
+
+    { &PORTB, &DDRB, &PINB, _BV(3), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTB, &DDRB, &PINB, _BV(2), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTB, &DDRB, &PINB, _BV(1), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTB, &DDRB, &PINB, _BV(0), false, 0, 0, 0, 0, 0, 0 },
+
+    { &PORTF, &DDRF, &PINF, _BV(0), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTF, &DDRF, &PINF, _BV(1), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTF, &DDRF, &PINF, _BV(2), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTF, &DDRF, &PINF, _BV(3), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTF, &DDRF, &PINF, _BV(4), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTF, &DDRF, &PINF, _BV(5), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTF, &DDRF, &PINF, _BV(6), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTF, &DDRF, &PINF, _BV(7), false, 0, 0, 0, 0, 0, 0 },
+
+    { &PORTK, &DDRK, &PINK, _BV(0), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTK, &DDRK, &PINK, _BV(1), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTK, &DDRK, &PINK, _BV(2), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTK, &DDRK, &PINK, _BV(3), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTK, &DDRK, &PINK, _BV(4), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTK, &DDRK, &PINK, _BV(5), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTK, &DDRK, &PINK, _BV(6), false, 0, 0, 0, 0, 0, 0 },
+    { &PORTK, &DDRK, &PINK, _BV(7), false, 0, 0, 0, 0, 0, 0 }
+};
+
+void analogWrite(uint8_t pin, uint8_t val)
+{
+    if (pin >= 70) {return;}
+
+    bool has_pwm{pgm_read_byte(&pin_table[pin].has_pwm)};
+    
+    if (!has_pwm) {
+        digitalWrite(pin, (val <= 128) ? false : true);
+        return;
+    }
+
+    volatile uint8_t* tccra {reinterpret_cast<volatile uint8_t*>(pgm_read_word(&pin_table[pin].tccra))};
+    volatile uint8_t* tccrb {reinterpret_cast<volatile uint8_t*>(pgm_read_word(&pin_table[pin].tccrb))};
+    volatile uint16_t* ocr  {reinterpret_cast<volatile uint16_t*>(pgm_read_word(&pin_table[pin].ocr))};
+    uint8_t com_bit         {pgm_read_byte(&pin_table[pin].com_bit)};
+    uint8_t tccra_bits      {pgm_read_byte(&pin_table[pin].tccra_bits)};
+    uint8_t tccrb_bits      {pgm_read_byte(&pin_table[pin].tccrb_bits)};
+
+    uint8_t oldSREG{SREG};
+    cli();
+
+    if (val == 0) {
+        *tccra &= ~com_bit;
+        digitalWrite(pin, LOW);
+    } else if (val == 255) {
+        *tccra &= ~com_bit;
+        digitalWrite(pin, HIGH);
+    } else {
+        *tccra |= com_bit | tccra_bits;
+        *tccrb = tccrb_bits;
+        *ocr = val;
+    }
+
+    SREG = oldSREG;
+}
+/*
+  alright thats all for now analog Refernce is exacly the same as the uno only with a little more modes (1)
+  if you wanna know more about the mega take a look at the ATmega2560 datasheet by ATMEL or continue this 
+  explaination file series with timerMega. 
+  .                                    happy coding :)
+*/
+}
