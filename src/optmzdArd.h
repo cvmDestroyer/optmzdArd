@@ -33,6 +33,14 @@
 #include <stdint.h>
 #include "util.h"
 
+#ifdef __AVR_ATmega2560__
+namespace gpio = mega;
+#elif defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__)
+namespace gpio = uno;
+#else
+namespace gpio = ard;
+#endif
+
 #if defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
   constexpr uint8_t _DEFAULT           {0};
   constexpr uint8_t _EXTERNAL          {1};
@@ -161,7 +169,7 @@ namespace uno
     void detachInterrupt(uint8_t pin);                                  // <- done
 
     #include"templates/uno.h"
-    // extras
+
     uint16_t analogRead(uint8_t pin, bool modePeformance);
     void tone(uint16_t frequency);
     void noTone(void);
@@ -201,21 +209,21 @@ namespace mega {
     void analogReference(uint8_t mode);          // <- done
     void analogWrite(uint8_t pin, uint8_t val);  // <- done
 
-    uint32_t millis(void);                       // <- x
-    uint32_t micros(void);                       // <- x
-    void delay(uint32_t ms);                     // <- x
-    void delayMicroseconds(uint16_t us);         // <- x
-    uint32_t pulseIn(uint8_t pin, bool state, uint32_t timeout);                   // <- x
-    uint32_t pulseInLong(uint8_t pin, bool state, uint32_t timeout);               // <- x
-    uint32_t pulseIn(uint8_t pin, bool state, uint32_t timeout = 1000000L);        // <- x
-    uint32_t pulseInLong(uint8_t pin, bool state, uint32_t timeout = 1000000L);    // <- x
+    uint32_t millis(void);                       // <- done
+    uint32_t micros(void);                       // <- done
+    void delay(uint32_t ms);                     // <- done
+    void delayMicroseconds(uint16_t us);         // <- done
+    uint32_t pulseIn(uint8_t pin, bool state, uint32_t timeout);                   // <- done
+    uint32_t pulseInLong(uint8_t pin, bool state, uint32_t timeout);               // <- done
+    uint32_t pulseIn(uint8_t pin, bool state, uint32_t timeout = 1000000L);        // <- done
+    uint32_t pulseInLong(uint8_t pin, bool state, uint32_t timeout = 1000000L);    // <- done
     
-    void tone(uint8_t pin, uint16_t frequency);                    // <- x
-    void tone(uint8_t pin, uint16_t frequency, uint32_t duration); // <- x
+    void tone(uint8_t pin, uint16_t frequency);                    // <- done
+    void tone(uint8_t pin, uint16_t frequency, uint32_t duration); // <- done
     void noTone(uint8_t pin);                                      // <- x
     
     void attachInterrupt(uint8_t pin, func_ptr userFunc, uint8_t mode); // <- x
-    void detachInterrupt(uint8_t pin);
+    void detachInterrupt(uint8_t pin);                                  // <- x
 
 }
 

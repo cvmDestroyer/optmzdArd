@@ -804,6 +804,8 @@ ISR(INT1_vect) {
 }
 #endif
 
+#ifdef __AVR_ATmega2560__
+
 #include <avr/pgmspace.h>
 
 namespace mega {
@@ -818,92 +820,92 @@ namespace mega {
         uint8_t analog_reference {0b01000000};
         const PinMap pin_table[70] PROGMEM = {
 
-            { &PORTE, &DDRE, &PINE, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTE, &DDRE, &PINE, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTE, &DDRE, &PINE, _BV(4), true,  &TCCR3A, &TCCR3B, (volatile uint16_t*)&OCR3B, (1 << COM3B1), 0x01, 0x0B },
-            { &PORTE, &DDRE, &PINE, _BV(5), true,  &TCCR3A, &TCCR3B, (volatile uint16_t*)&OCR3C, (1 << COM3C1), 0x01, 0x0B },
-            { &PORTG, &DDRG, &PING, _BV(5), true,  &TCCR0A, &TCCR0B, (volatile uint16_t*)&OCR0B, (1 << COM0B1), 0x03, 0x03 },
-            { &PORTE, &DDRE, &PINE, _BV(3), true,  &TCCR3A, &TCCR3B, (volatile uint16_t*)&OCR3A, (1 << COM3A1), 0x01, 0x0B },
-            { &PORTH, &DDRH, &PINH, _BV(3), true,  &TCCR4A, &TCCR4B, (volatile uint16_t*)&OCR4A, (1 << COM4A1), 0x01, 0x0B },
-            { &PORTH, &DDRH, &PINH, _BV(4), true,  &TCCR4A, &TCCR4B, (volatile uint16_t*)&OCR4B, (1 << COM4B1), 0x01, 0x0B },
-            { &PORTH, &DDRH, &PINH, _BV(5), true,  &TCCR4A, &TCCR4B, (volatile uint16_t*)&OCR4C, (1 << COM4C1), 0x01, 0x0B },
-            { &PORTH, &DDRH, &PINH, _BV(6), true,  &TCCR2A, &TCCR2B, (volatile uint16_t*)&OCR2B, (1 << COM2B1), 0x03, 0x04 },
-            { &PORTB, &DDRB, &PINB, _BV(4), true,  &TCCR2A, &TCCR2B, (volatile uint16_t*)&OCR2A, (1 << COM2A1), 0x03, 0x04 },
-            { &PORTB, &DDRB, &PINB, _BV(5), true,  &TCCR1A, &TCCR1B, (volatile uint16_t*)&OCR1A, (1 << COM1A1), 0x01, 0x0B },
-            { &PORTB, &DDRB, &PINB, _BV(6), true,  &TCCR1A, &TCCR1B, (volatile uint16_t*)&OCR1B, (1 << COM1B1), 0x01, 0x0B },
-            { &PORTB, &DDRB, &PINB, _BV(7), true,  &TCCR0A, &TCCR0B, (volatile uint16_t*)&OCR0A, (1 << COM0A1), 0x03, 0x03 },
+            { &PORTE, &DDRE, &PINE, _BV(0), false,    0,       0,                  0,                   0,       0,    0   }, // 0
+            { &PORTE, &DDRE, &PINE, _BV(1), false,    0,       0,                  0,                   0,       0,    0   }, // 1
+            { &PORTE, &DDRE, &PINE, _BV(4), true,  &TCCR3A, &TCCR3B, (volatile uint16_t*)&OCR3B, (1 << COM3B1), 0x01, 0x0B }, // 2
+            { &PORTE, &DDRE, &PINE, _BV(5), true,  &TCCR3A, &TCCR3B, (volatile uint16_t*)&OCR3C, (1 << COM3C1), 0x01, 0x0B }, // 3
+            { &PORTG, &DDRG, &PING, _BV(5), true,  &TCCR0A, &TCCR0B, (volatile uint16_t*)&OCR0B, (1 << COM0B1), 0x03, 0x03 }, // 4
+            { &PORTE, &DDRE, &PINE, _BV(3), true,  &TCCR3A, &TCCR3B, (volatile uint16_t*)&OCR3A, (1 << COM3A1), 0x01, 0x0B }, // 5
+            { &PORTH, &DDRH, &PINH, _BV(3), true,  &TCCR4A, &TCCR4B, (volatile uint16_t*)&OCR4A, (1 << COM4A1), 0x01, 0x0B }, // 6
+            { &PORTH, &DDRH, &PINH, _BV(4), true,  &TCCR4A, &TCCR4B, (volatile uint16_t*)&OCR4B, (1 << COM4B1), 0x01, 0x0B }, // 7
+            { &PORTH, &DDRH, &PINH, _BV(5), true,  &TCCR4A, &TCCR4B, (volatile uint16_t*)&OCR4C, (1 << COM4C1), 0x01, 0x0B }, // 8
+            { &PORTH, &DDRH, &PINH, _BV(6), true,  &TCCR2A, &TCCR2B, (volatile uint16_t*)&OCR2B, (1 << COM2B1), 0x03, 0x04 }, // 9
+            { &PORTB, &DDRB, &PINB, _BV(4), true,  &TCCR2A, &TCCR2B, (volatile uint16_t*)&OCR2A, (1 << COM2A1), 0x03, 0x04 }, // 10
+            { &PORTB, &DDRB, &PINB, _BV(5), true,  &TCCR1A, &TCCR1B, (volatile uint16_t*)&OCR1A, (1 << COM1A1), 0x01, 0x0B }, // 11
+            { &PORTB, &DDRB, &PINB, _BV(6), true,  &TCCR1A, &TCCR1B, (volatile uint16_t*)&OCR1B, (1 << COM1B1), 0x01, 0x0B }, // 12
+            { &PORTB, &DDRB, &PINB, _BV(7), true,  &TCCR0A, &TCCR0B, (volatile uint16_t*)&OCR0A, (1 << COM0A1), 0x03, 0x03 }, // 13
 
-            { &PORTJ, &DDRJ, &PINJ, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTJ, &DDRJ, &PINJ, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTH, &DDRH, &PINH, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTH, &DDRH, &PINH, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTD, &DDRD, &PIND, _BV(3), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTD, &DDRD, &PIND, _BV(2), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTD, &DDRD, &PIND, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTD, &DDRD, &PIND, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTJ, &DDRJ, &PINJ, _BV(1), false,    0,       0,                  0,                   0,       0,    0   }, // 14
+            { &PORTJ, &DDRJ, &PINJ, _BV(0), false,    0,       0,                  0,                   0,       0,    0   }, // 15
+            { &PORTH, &DDRH, &PINH, _BV(1), false,    0,       0,                  0,                   0,       0,    0   }, // 16
+            { &PORTH, &DDRH, &PINH, _BV(0), false,    0,       0,                  0,                   0,       0,    0   }, // 17
+            { &PORTD, &DDRD, &PIND, _BV(3), false,    0,       0,                  0,                   0,       0,    0   }, // 18
+            { &PORTD, &DDRD, &PIND, _BV(2), false,    0,       0,                  0,                   0,       0,    0   }, // 19
+            { &PORTD, &DDRD, &PIND, _BV(1), false,    0,       0,                  0,                   0,       0,    0   }, // 20
+            { &PORTD, &DDRD, &PIND, _BV(0), false,    0,       0,                  0,                   0,       0,    0   }, // 21
 
-            { &PORTA, &DDRA, &PINA, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTA, &DDRA, &PINA, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTA, &DDRA, &PINA, _BV(2), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTA, &DDRA, &PINA, _BV(3), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTA, &DDRA, &PINA, _BV(4), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTA, &DDRA, &PINA, _BV(5), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTA, &DDRA, &PINA, _BV(6), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTA, &DDRA, &PINA, _BV(7), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTA, &DDRA, &PINA, _BV(0), false,    0,       0,                  0,                   0,       0,    0   }, // 22
+            { &PORTA, &DDRA, &PINA, _BV(1), false,    0,       0,                  0,                   0,       0,    0   }, // 23
+            { &PORTA, &DDRA, &PINA, _BV(2), false,    0,       0,                  0,                   0,       0,    0   }, // 24
+            { &PORTA, &DDRA, &PINA, _BV(3), false,    0,       0,                  0,                   0,       0,    0   }, // 25
+            { &PORTA, &DDRA, &PINA, _BV(4), false,    0,       0,                  0,                   0,       0,    0   }, // 26
+            { &PORTA, &DDRA, &PINA, _BV(5), false,    0,       0,                  0,                   0,       0,    0   }, // 27
+            { &PORTA, &DDRA, &PINA, _BV(6), false,    0,       0,                  0,                   0,       0,    0   }, // 28
+            { &PORTA, &DDRA, &PINA, _BV(7), false,    0,       0,                  0,                   0,       0,    0   }, // 29
 
-            { &PORTC, &DDRC, &PINC, _BV(7), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTC, &DDRC, &PINC, _BV(6), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTC, &DDRC, &PINC, _BV(5), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTC, &DDRC, &PINC, _BV(4), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTC, &DDRC, &PINC, _BV(3), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTC, &DDRC, &PINC, _BV(2), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTC, &DDRC, &PINC, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTC, &DDRC, &PINC, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTC, &DDRC, &PINC, _BV(7), false,    0,       0,                  0,                   0,       0,    0   }, // 30
+            { &PORTC, &DDRC, &PINC, _BV(6), false,    0,       0,                  0,                   0,       0,    0   }, // 31
+            { &PORTC, &DDRC, &PINC, _BV(5), false,    0,       0,                  0,                   0,       0,    0   }, // 32
+            { &PORTC, &DDRC, &PINC, _BV(4), false,    0,       0,                  0,                   0,       0,    0   }, // 33
+            { &PORTC, &DDRC, &PINC, _BV(3), false,    0,       0,                  0,                   0,       0,    0   }, // 34
+            { &PORTC, &DDRC, &PINC, _BV(2), false,    0,       0,                  0,                   0,       0,    0   }, // 35
+            { &PORTC, &DDRC, &PINC, _BV(1), false,    0,       0,                  0,                   0,       0,    0   }, // 36
+            { &PORTC, &DDRC, &PINC, _BV(0), false,    0,       0,                  0,                   0,       0,    0   }, // 37
 
-            { &PORTD, &DDRD, &PIND, _BV(7), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTG, &DDRG, &PING, _BV(2), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTG, &DDRG, &PING, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTG, &DDRG, &PING, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTD, &DDRD, &PIND, _BV(7), false,    0,       0,                  0,                   0,       0,    0   }, // 38
+            { &PORTG, &DDRG, &PING, _BV(2), false,    0,       0,                  0,                   0,       0,    0   }, // 39
+            { &PORTG, &DDRG, &PING, _BV(1), false,    0,       0,                  0,                   0,       0,    0   }, // 40
+            { &PORTG, &DDRG, &PING, _BV(0), false,    0,       0,                  0,                   0,       0,    0   }, // 41
 
-            { &PORTL, &DDRL, &PINL, _BV(7), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTL, &DDRL, &PINL, _BV(6), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTL, &DDRL, &PINL, _BV(5), true,  &TCCR5A, &TCCR5B, (volatile uint16_t*)&OCR5C, (1 << COM5C1), 0x01, 0x0B },
-            { &PORTL, &DDRL, &PINL, _BV(4), true,  &TCCR5A, &TCCR5B, (volatile uint16_t*)&OCR5B, (1 << COM5B1), 0x01, 0x0B },
-            { &PORTL, &DDRL, &PINL, _BV(3), true,  &TCCR5A, &TCCR5B, (volatile uint16_t*)&OCR5A, (1 << COM5A1), 0x01, 0x0B },
-            { &PORTL, &DDRL, &PINL, _BV(2), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTL, &DDRL, &PINL, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTL, &DDRL, &PINL, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTL, &DDRL, &PINL, _BV(7), false,    0,       0,                  0,                   0,       0,    0   }, // 42
+            { &PORTL, &DDRL, &PINL, _BV(6), false,    0,       0,                  0,                   0,       0,    0   }, // 43
+            { &PORTL, &DDRL, &PINL, _BV(5), true,  &TCCR5A, &TCCR5B, (volatile uint16_t*)&OCR5C, (1 << COM5C1), 0x01, 0x0B }, // 44
+            { &PORTL, &DDRL, &PINL, _BV(4), true,  &TCCR5A, &TCCR5B, (volatile uint16_t*)&OCR5B, (1 << COM5B1), 0x01, 0x0B }, // 45
+            { &PORTL, &DDRL, &PINL, _BV(3), true,  &TCCR5A, &TCCR5B, (volatile uint16_t*)&OCR5A, (1 << COM5A1), 0x01, 0x0B }, // 46
+            { &PORTL, &DDRL, &PINL, _BV(2), false,    0,       0,                  0,                   0,       0,    0   }, // 47
+            { &PORTL, &DDRL, &PINL, _BV(1), false,    0,       0,                  0,                   0,       0,    0   }, // 48
+            { &PORTL, &DDRL, &PINL, _BV(0), false,    0,       0,                  0,                   0,       0,    0   }, // 49
 
-            { &PORTB, &DDRB, &PINB, _BV(3), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTB, &DDRB, &PINB, _BV(2), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTB, &DDRB, &PINB, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTB, &DDRB, &PINB, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTB, &DDRB, &PINB, _BV(3), false,    0,       0,                  0,                   0,       0,    0   }, // 50
+            { &PORTB, &DDRB, &PINB, _BV(2), false,    0,       0,                  0,                   0,       0,    0   }, // 51
+            { &PORTB, &DDRB, &PINB, _BV(1), false,    0,       0,                  0,                   0,       0,    0   }, // 52
+            { &PORTB, &DDRB, &PINB, _BV(0), false,    0,       0,                  0,                   0,       0,    0   }, // 53
 
-            { &PORTF, &DDRF, &PINF, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTF, &DDRF, &PINF, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTF, &DDRF, &PINF, _BV(2), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTF, &DDRF, &PINF, _BV(3), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTF, &DDRF, &PINF, _BV(4), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTF, &DDRF, &PINF, _BV(5), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTF, &DDRF, &PINF, _BV(6), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTF, &DDRF, &PINF, _BV(7), false,    0,       0,                  0,                   0,       0,    0   },
+            { &PORTF, &DDRF, &PINF, _BV(0), false,    0,       0,                  0,                   0,       0,    0   }, // 54
+            { &PORTF, &DDRF, &PINF, _BV(1), false,    0,       0,                  0,                   0,       0,    0   }, // 55
+            { &PORTF, &DDRF, &PINF, _BV(2), false,    0,       0,                  0,                   0,       0,    0   }, // 56
+            { &PORTF, &DDRF, &PINF, _BV(3), false,    0,       0,                  0,                   0,       0,    0   }, // 57 
+            { &PORTF, &DDRF, &PINF, _BV(4), false,    0,       0,                  0,                   0,       0,    0   }, // 58
+            { &PORTF, &DDRF, &PINF, _BV(5), false,    0,       0,                  0,                   0,       0,    0   }, // 59
+            { &PORTF, &DDRF, &PINF, _BV(6), false,    0,       0,                  0,                   0,       0,    0   }, // 60
+            { &PORTF, &DDRF, &PINF, _BV(7), false,    0,       0,                  0,                   0,       0,    0   }, // 61
 
-            { &PORTK, &DDRK, &PINK, _BV(0), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTK, &DDRK, &PINK, _BV(1), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTK, &DDRK, &PINK, _BV(2), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTK, &DDRK, &PINK, _BV(3), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTK, &DDRK, &PINK, _BV(4), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTK, &DDRK, &PINK, _BV(5), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTK, &DDRK, &PINK, _BV(6), false,    0,       0,                  0,                   0,       0,    0   },
-            { &PORTK, &DDRK, &PINK, _BV(7), false,    0,       0,                  0,                   0,       0,    0   }
+            { &PORTK, &DDRK, &PINK, _BV(0), false,    0,       0,                  0,                   0,       0,    0   }, // 62
+            { &PORTK, &DDRK, &PINK, _BV(1), false,    0,       0,                  0,                   0,       0,    0   }, // 63
+            { &PORTK, &DDRK, &PINK, _BV(2), false,    0,       0,                  0,                   0,       0,    0   }, // 64
+            { &PORTK, &DDRK, &PINK, _BV(3), false,    0,       0,                  0,                   0,       0,    0   }, // 65
+            { &PORTK, &DDRK, &PINK, _BV(4), false,    0,       0,                  0,                   0,       0,    0   }, // 66
+            { &PORTK, &DDRK, &PINK, _BV(5), false,    0,       0,                  0,                   0,       0,    0   }, // 67
+            { &PORTK, &DDRK, &PINK, _BV(6), false,    0,       0,                  0,                   0,       0,    0   }, // 68
+            { &PORTK, &DDRK, &PINK, _BV(7), false,    0,       0,                  0,                   0,       0,    0   }  // 69
         };
     }
 
     void pinMode(uint8_t pin, uint8_t func) {
         if (pin >= 70) {return;}
 
-        volatile uint8_t* ddr  {reinterpret_cast<volatile uint8_t*>(pgm_read_word(&mega::privat::pin_table[pin].ddr))};
-        volatile uint8_t* port {reinterpret_cast<volatile uint8_t*>(pgm_read_word(&mega::privat::pin_table[pin].port))};
+        volatile uint8_t* ddr  {reinterpret_cast<volatile uint8_t*>(pgm_read_byte(&mega::privat::pin_table[pin].ddr))};
+        volatile uint8_t* port {reinterpret_cast<volatile uint8_t*>(pgm_read_byte(&mega::privat::pin_table[pin].port))};
         uint8_t mask{pgm_read_byte(&mega::privat::pin_table[pin].mask)};
 
         uint8_t oldSREG {SREG};
@@ -926,11 +928,13 @@ namespace mega {
     void digitalWrite(uint8_t pin, bool val) {
         if (pin >= 70) {return;}
 
-        volatile uint8_t* port {reinterpret_cast<volatile uint8_t*>(pgm_read_word(&mega::privat::pin_table[pin].port))};
+        volatile uint8_t* port {reinterpret_cast<volatile uint8_t*>(pgm_read_byte(&mega::privat::pin_table[pin].port))};
         uint8_t mask           {pgm_read_byte(&mega::privat::pin_table[pin].mask)};
 
         uint8_t oldSREG {SREG};
         cli();
+
+        util_mega::turnOffPWM(pin);
 
         if (val) {
             *port |= mask;
@@ -944,7 +948,7 @@ namespace mega {
     bool digitalRead(uint8_t pin) {
         if (pin >= 70) {return false;}
 
-        volatile uint8_t* pin_reg {reinterpret_cast<volatile uint8_t*>(pgm_read_word(&mega::privat::pin_table[pin].pin_reg))};
+        volatile uint8_t* pin_reg {reinterpret_cast<volatile uint8_t*>(pgm_read_byte(&mega::privat::pin_table[pin].pin_reg))};
         uint8_t mask              {pgm_read_byte(&mega::privat::pin_table[pin].mask)};
 
         return (*pin_reg & mask);
@@ -1008,8 +1012,8 @@ namespace mega {
             return;
         }
 
-        volatile uint8_t* tccra {reinterpret_cast<volatile uint8_t*>(pgm_read_word(&mega::privat::pin_table[pin].tccra))};
-        volatile uint8_t* tccrb {reinterpret_cast<volatile uint8_t*>(pgm_read_word(&mega::privat::pin_table[pin].tccrb))};
+        volatile uint8_t* tccra {reinterpret_cast<volatile uint8_t*>(pgm_read_byte(&mega::privat::pin_table[pin].tccra))};
+        volatile uint8_t* tccrb {reinterpret_cast<volatile uint8_t*>(pgm_read_byte(&mega::privat::pin_table[pin].tccrb))};
         volatile uint16_t* ocr  {reinterpret_cast<volatile uint16_t*>(pgm_read_word(&mega::privat::pin_table[pin].ocr))};
         uint8_t com_bit         {pgm_read_byte(&mega::privat::pin_table[pin].com_bit)};
         uint8_t tccra_bits      {pgm_read_byte(&mega::privat::pin_table[pin].tccra_bits)};
@@ -1076,7 +1080,7 @@ namespace mega {
         uint8_t oldSREG{SREG};
         cli();
 
-        volatile uint8_t* pin_reg{reinterpret_cast<volatile uint8_t *>(pgm_read_word(&mega::privat::pin_table[pin].pin_reg))};
+        volatile uint8_t* pin_reg{reinterpret_cast<volatile uint8_t *>(pgm_read_byte(&mega::privat::pin_table[pin].pin_reg))};
         uint8_t bit{pgm_read_byte(mega::privat::pin_table[pin].mask)};
 
         uint8_t stateMask{state ? bit : 0};
@@ -1105,7 +1109,7 @@ namespace mega {
         uint8_t oldSREG{SREG};
         cli();
 
-        volatile uint8_t* pin_reg{reinterpret_cast<volatile uint8_t *>(pgm_read_word(&mega::privat::pin_table[pin].pin_reg))};
+        volatile uint8_t* pin_reg{reinterpret_cast<volatile uint8_t *>(pgm_read_byte(&mega::privat::pin_table[pin].pin_reg))};
         uint8_t bit{pgm_read_byte(mega::privat::pin_table[pin].mask)};
         
         uint8_t stateMask{state ? bit : 0};
@@ -1222,4 +1226,6 @@ ISR(TIMER2_COMPA_vect) {
             mega::digitalWrite(mega::privat::current_pin, LOW);
         }
     } 
-} 
+}
+
+#endif
