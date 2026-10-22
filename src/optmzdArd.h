@@ -33,14 +33,6 @@
 #include <stdint.h>
 #include "util.h"
 
-#ifdef __AVR_ATmega2560__
-namespace gpio = mega;
-#elif defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__)
-namespace gpio = uno;
-#else
-namespace gpio = ard;
-#endif
-
 #if defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
   constexpr uint8_t _DEFAULT           {0};
   constexpr uint8_t _EXTERNAL          {1};
@@ -73,6 +65,7 @@ constexpr uint8_t _LOW           {0x00};
 
 constexpr bool performance       {true};
 
+namespace gpio {
 namespace ard // <- done
 {
     void pinMode(uint8_t pin, uint8_t mode);
@@ -224,6 +217,16 @@ namespace mega {
     
     void attachInterrupt(uint8_t pin, func_ptr userFunc, uint8_t mode); // <- x
     void detachInterrupt(uint8_t pin);                                  // <- x
+
+}
+
+#ifdef __AVR_ATmega2560__
+using namespace mega;
+#elif defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__)
+using namespace uno;
+#else
+using namespace ard;
+#endif
 
 }
 

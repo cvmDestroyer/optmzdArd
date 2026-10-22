@@ -13,7 +13,7 @@
 // #define ENABLE_UNO_HIGH_RISK_HIGH_PRECISION_TIMER_0
 // same thing here just for the timer 5 on mega
 // #define ENABLE_MEGA_HIGH_RISK_HIGH_PRECISION_TIMER_5
-
+namespace gpio {
 namespace ard 
 {
     // normal versions
@@ -1227,5 +1227,5 @@ ISR(TIMER2_COMPA_vect) {
         }
     } 
 }
-
+}
 #endif
