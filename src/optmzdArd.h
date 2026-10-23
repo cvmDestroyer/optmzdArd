@@ -34,26 +34,26 @@
 #include "util.h"
 
 #if defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
-  constexpr uint8_t _DEFAULT           {0};
-  constexpr uint8_t _EXTERNAL          {1};
-  constexpr uint8_t _INTERNAL1V1       {2};
-  constexpr uint8_t _INTERNAL{INTERNAL1V1};
+    constexpr uint8_t _DEFAULT           {0};
+    constexpr uint8_t _EXTERNAL          {1};
+    constexpr uint8_t _INTERNAL1V1       {2};
+    constexpr uint8_t _INTERNAL{INTERNAL1V1};
 #elif defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
-  constexpr uint8_t _DEFAULT              {0};
-  constexpr uint8_t _EXTERNAL             {4};
-  constexpr uint8_t _INTERNAL1V1          {8};
-  constexpr uint8_t _INTERNAL   {INTERNAL1V1};
-  constexpr uint8_t _INTERNAL2V56         {9};
-  constexpr uint8_t _INTERNAL2V56_EXTCAP {13};
+    constexpr uint8_t _DEFAULT              {0};
+    constexpr uint8_t _EXTERNAL             {4};
+    constexpr uint8_t _INTERNAL1V1          {8};
+    constexpr uint8_t _INTERNAL   {INTERNAL1V1};
+    constexpr uint8_t _INTERNAL2V56         {9};
+    constexpr uint8_t _INTERNAL2V56_EXTCAP {13};
 #else  
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__)
-  constexpr uint8_t _INTERNAL1V1  {2};
-  constexpr uint8_t _INTERNAL2V56 {3};
+    constexpr uint8_t _INTERNAL1V1  {2};
+    constexpr uint8_t _INTERNAL2V56 {3};
 #else
-  constexpr uint8_t _INTERNAL{3};
+    constexpr uint8_t _INTERNAL{3};
 #endif
-  constexpr uint8_t _DEFAULT {1};
-  constexpr uint8_t _EXTERNAL{0};
+    constexpr uint8_t _DEFAULT {1};
+    constexpr uint8_t _EXTERNAL{0};
 #endif
 
 constexpr uint8_t _INPUT         {0x00};
@@ -218,6 +218,8 @@ namespace mega {
     void attachInterrupt(uint8_t pin, func_ptr userFunc, uint8_t mode); // <- x
     void detachInterrupt(uint8_t pin);                                  // <- x
 
+    uint16_t analogRead(uint8_t pin, bool modePeformance);
+    void initTimer(void);
 }
 
 #ifdef __AVR_ATmega2560__

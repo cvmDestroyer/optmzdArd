@@ -1,0 +1,171 @@
+#include <Arduino.h> // clang-format off
+/*
+'  _______   _______                                           _______   _______   _______   _______ 
+' |       | |       |  _______   _______   ________  _______  | ___   | |    ___| |   ____| |   __  |
+' |   |   | └-┐   ┌-┘ |       | |       | |   __  | |____   | └─'__|  | |___    | |  └----┐ |  | ╱| |
+' |       |   |   |   |  |  | | |   ' __| |     __| |   .   |  ╱  ____|  ___│   | |  [ ]  | |  |╱_| |
+' |___|___|   |___|   |__|__|_| |_______| ┌' __'──┐ |_____|_| |_______| |_______| |_______| |_______|
+'                                         |_______|                                        
+'
+'  _______   _______   ________  _______ 
+' |       | |       | |   __  | |____   |
+' |  |  | | |   ' __| |     __| |   .   |
+' |__|__|_| |_______| ┌' __'──┐ |_____|_|
+'                     |_______|          
+*/
+
+/*
+  IF THIS IS YOUR FIRST EXPLAINATION FILE YOUR IN THE WRONG PLACE THIS IS EXPLAINATION FILE NUMBER 3
+  if you wanna learn more this is the road map start at portsMega or take a look at the ATmega2560 datasheet by ATMEL:
+  portsMega -> analogMega -> timerMega -> interruptsMega
+  .
+  this file is a explaination file and is not needed for the optmzdArd lib delete at your will
+  sorry if there are some grammatical mistakes im not good with languages not even in my mother-langueage (german)
+  i make many easy mistakes but just so you know i've tried my best
+*/
+/*
+  alright timers are pretty simular you can basicly just read the timerUno file to get everything you need
+  for the timer function because its identical.
+  therfore i just want to talk about the timers and not how to directly code the timer functions
+  the first thing you may have noticed by reading the analogMega file is that the mega has not only
+  3 timers but 6. if you would have looked at the tabel you also would have known that timer 0 and timer 2
+  the only 8bit timers are the rest are 16bit timers wich make them extremly presice and you dont need a
+  the correction thingy in the millis() vector and you cant just use ctc so it count to 1k (1ms)
+  alright how do you do it? i already explained that in the timersUno file if you realy wanna know.
+  tbh thats already it for the timers functions but its literly only like one little text and zero code
+  therefore we just gonna code the ctc version of millis on timer 5 (or any 16bit timer) that is being
+  used in optmzdArd.h too.
+*/
+/*
+  alrigt the core is pretty much the same but still just so you know how to do it your self
+  first we need to reset TCCR5A (for timer 5) and TCCR5B (timer control register) then we just need
+  to choose the prescaler and in which mode it shall run here is the tabel for that which i copy pasted
+  from timerUno :
+  .
+  timer 0 (8bit) and timer 2 (8bit):
+  _____________________________________________________________________________________________________________________________________
+   WGMx2 (TCCRxB) | WGMx1 (TCCRxA) | WGMx0(TCCRxA) |           mode            | highest-count | describtion
+  ----------------|----------------|---------------|---------------------------|---------------|---------------------------------------
+  .       0       |        0       |       0       | normal                    |      255      | standard counter 0 - 255
+  .       0       |        0       |       1       | PWM, phase correct        |      255      | counts up and down(symetric impulses)
+  .       0       |        1       |       0       | ctc                       |     OCRxA     | counts to the limit set by OCRxA then jumps to 0
+  .       0       |        1       |       1       | fast PWM (8bit)           |      255      | standard 8bit PWM
+  .       1       |        0       |       0       | reserved                  |       -       | do not use
+  .       1       |        0       |       1       | PWM, phase & freq correct |     OCRxA     | freqeny can be controlled by OCRxA
+  .       1       |        1       |       0       | reserved                  |       -       | do not use
+  .       1       |        1       |       1       | fast PWM (var)            |     OCRxA     | freqeny can be controlled by OCRxA
+  .
+  16bit timers (timer - 1, - 3 - 4 and - 5):
+  _______________________________________________________________________________________________________________
+   WGM13 (TCCR1B) | WGM12 (TCCR1B) | WGM11 (TCCR1A) | WGM10(TCCR1A) |            mode            | highest-count
+  ----------------|----------------|----------------|---------------|----------------------------|---------------
+  .       0       |        0       |        0       |       0       | normal                     |     65535
+  .       0       |        0       |        0       |       1       | PWM, phase correct (8bit)  |     255
+  .       0       |        0       |        1       |       0       | PWM, phase correct (9bit)  |     511
+  .       0       |        0       |        1       |       1       | PWM, phase correct (10bit) |     1023
+  .       0       |        1       |        0       |       0       | ctc                        |     OCR1A
+  .       0       |        1       |        0       |       1       | fast PWM (8bit)            |     255
+  .       0       |        1       |        1       |       0       | fast PWM (9bit)            |     511
+  .       0       |        1       |        1       |       1       | fast PWM (10bit)           |     1023
+  .       1       |        0       |        0       |       0       | PWM, phase & freq correct  |     ICR1
+  .       1       |        0       |        0       |       1       | PWM, phase & freq correct  |     OCR1A
+  .       1       |        0       |        1       |       0       | PWM, phase correct         |     ICR1
+  .       1       |        0       |        1       |       1       | PWM, phase correct         |     OCR1A
+  .       1       |        1       |        0       |       0       | ctc                        |     ICR1
+  .       1       |        1       |        0       |       1       | reserved                   |       -
+  .       1       |        1       |        1       |       0       | fast PWM (var)             |     ICR1
+  .       1       |        1       |        1       |       1       | fast PWM (var)             |     OCR1A
+  .
+  .
+  timer 2 (cuz timer 2 has main character syndrome): 
+  ___________________________________________________
+  . CS22 |  CS21 |  CS20 | precaler | aditional info
+  ----------------------------------|----------------
+  .  0   |   0   |   0   |    -     |  TIMER-STOPS
+  .  0   |   0   |   1   |    1     |     normal
+  .  0   |   1   |   0   |    8     |     normal
+  .  0   |   1   |   1   |    32    |     normal
+  .  1   |   0   |   0   |    64    |     normal
+  .  1   |   0   |   1   |   128    |     normal
+  .  1   |   1   |   0   |   256    |     normal
+  .  1   |   1   |   1   |   1024   |     normal
+  .
+  rest of timers (cuz their normal):
+  _________________________________________________________________________
+  . CS02 |  CS01 |  CS00 | precaler |             aditional info
+  ----------------------------------|--------------------------------------
+  .  0   |   0   |   0   |    -     |              TIMER-STOPS
+  .  0   |   0   |   1   |    1     |                normal
+  .  0   |   1   |   0   |    8     |                normal
+  .  0   |   1   |   1   |    64    |                normal
+  .  1   |   0   |   0   |   256    |                normal
+  .  1   |   0   |   1   |   1024   |                normal
+  .  1   |   1   |   0   |    -     |  extern clock on pin TO/T1 FALLING
+  .  1   |   1   |   1   |    -     |  extern clock on pin TO/T1 RISING
+  .
+  __
+  .
+  bits in TIMSKx           | when does an interrupt fire?            | ISR makro
+  -------------------------|-----------------------------------------|-------------------
+  .       TOIEx            | when counter overflows 255 -> 0 (8bit)  | TIMERx_OVF_vect
+  -------------------------|-----------------------------------------|-------------------
+  .       OCIExA           | when counter TCNTx is the same as OCRxA | TIMERx_COMPA_vect
+  -------------------------|-----------------------------------------|-------------------
+  .       OCIExB           | when counter TCNTx is the same as OCRxB | TIMERx_COMPB_vect
+  -------------------------|-----------------------------------------|-------------------
+  ICIE1 (only timer 1)     | when a signal edge is detected on the   | TIMER1_CAPT_vect
+  .                        | ICP1 pin (pin8) or by the anlog         |
+  .                        | comparator, the counter value (TCNT1)   |
+  .                        | is immediately captured in ICR1.        |
+  .
+*/
+namespace timerMega {
+/*
+  now that that we have everything we need we can start with our super precise millis() 
+*/
+// our init func sso we can activate the timer in ctc
+void init(void)
+{
+    uint8_t oldSREG{SREG}; // the classic thing we need to do when working with atomic stuff
+    cli(); // clear interrupt flags
+
+    TCCR5A = 0; // clear tccr
+    TCCR5B = 0; // clear tccr
+    // now that everything is clean we can start flipping the right bits
+    // the first thing we need is the ctc mode we only have to flip the bit WGM52 on tccrxb for ctc
+    TCCR5B |= (1 << WGM52);
+    // next up is the CSxx (clock select) we need a prescaler of 64 therfore we need the bits CSx1 and CSx0 (tccrxb)
+    TCCR5B |= (1 << CS51) | (1 << CS50);
+    // alright now every thing is set and we have to calculate till when the timer 5 should count in ctc mode
+    // first we need to take the current clock speed which is 250.000 because of your prescaler of 64 and 
+    // 16.000.000 (clock speed of arduino) / 64 (our prescaler) is 250.000
+    // to figure out our limit we just take those 250k and devide it by 1k because thats how many ms one s has
+    // and clock speed is in s so 250k clocks per second
+    // therefore we can calulate the amount of clocks for ONE ms like this: 250.000 / 1000 = 250
+    // now we know that 250 clocks are one ms and therefore we just set ctcs linit to 250
+    // and because computers start counting at 0 we dont set the limiz zo 250 but to 249
+    OCR5A = 249;
+    // now we have to activate the ocr with the fitting bitz in TIMSK5 (in this case OCIE5A beause we used OCR5A)
+    TIMSK5 |= (1 << OCIE5A);
+    SREG = oldSREG;
+}
+// now we need a quick var to count the amount of times the interrupt was fired
+volatile uint32_t ctc_limit_hits{};
+
+uint32_t millis(void) {
+    return ctc_limit_hits;
+}
+// now we just need to set up an interrupt service routine with ISR() {}
+// in the brackets we need to give in a vector you can look up which vector to
+// use in the tabel above
+ISR(TIMER5_COMPA_vect) {
+    ctc_limit_hits++; // now we just add one for every interrupt enter and thats it
+}
+
+/*
+  for the original timer functions with timer0 read the timerUno file or take a look at the optmzdArd.cpp file
+  if you wanna know more about the mega take a look at the ATmega2560 datasheet by ATMEL or continue this 
+  explaination file series with timerMega. 
+  .                                    happy coding :)
+*/
+}
