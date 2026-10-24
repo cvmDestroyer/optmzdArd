@@ -178,6 +178,15 @@ namespace mega {
         extern volatile uint8_t current_pin;
         extern volatile uint32_t toggle_count;
 
+        extern volatile func_ptr callbacks[70];
+        extern volatile func_ptr int_funcs[6];
+        extern volatile uint8_t modes[70];
+
+        extern volatile uint8_t last_port_B;
+        extern volatile uint8_t last_port_E;
+        extern volatile uint8_t last_port_J;
+        extern volatile uint8_t last_port_K;
+
         struct PinMap {
             volatile uint8_t* port;
             volatile uint8_t* ddr;
@@ -213,10 +222,12 @@ namespace mega {
     
     void tone(uint8_t pin, uint16_t frequency);                    // <- done
     void tone(uint8_t pin, uint16_t frequency, uint32_t duration); // <- done
-    void noTone(uint8_t pin);                                      // <- x
+    void noTone(uint8_t pin);                                      // <- done
     
-    void attachInterrupt(uint8_t pin, func_ptr userFunc, uint8_t mode); // <- x
-    void detachInterrupt(uint8_t pin);                                  // <- x
+    void attachInterrupt(uint8_t pin, func_ptr userFunc, uint8_t mode); // <- done
+    void detachInterrupt(uint8_t pin);                                  // <- done
+
+    #include"templates/mega.h"
 
     uint16_t analogRead(uint8_t pin, bool modePeformance);
     void initTimer(void);

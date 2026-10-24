@@ -817,6 +817,15 @@ namespace mega {
         volatile uint8_t current_pin{};
         volatile uint32_t toggle_count{};
 
+        volatile func_ptr callbacks[70] = {nullptr};
+        volatile func_ptr int_funcs[6]  = {nullptr};
+        volatile uint8_t modes[70]      = {0};
+
+        volatile uint8_t last_port_B{};
+        volatile uint8_t last_port_E{};
+        volatile uint8_t last_port_J{};
+        volatile uint8_t last_port_K{};
+
         uint8_t analog_reference {0b01000000};
         const PinMap pin_table[70] PROGMEM = {
 
@@ -1161,10 +1170,127 @@ namespace mega {
             mega::privat::toggle_count = 0;
         }
     }
-    void noTone(uint8_t pin) {}
+    void noTone(uint8_t pin) {
+        TIMSK2 &= ~(1 << OCIE2A);
+        mega::digitalWrite(pin, LOW);
+    }
 
-    void attachInterrupt(uint8_t pin, func_ptr userFunc, uint8_t mode) {}
-    void detachInterrupt(uint8_t pin) {}
+    void attachInterrupt(uint8_t pin, func_ptr userFunc, uint8_t mode) 
+    {
+        uint8_t oldSREG{SREG};
+        cli();
+
+        if (pin == 21) {
+            EICRA &= ~((1 << ISC00) | (1 << ISC01));
+            if (mode == FALLING)     { EICRA |= (1 << ISC01); }
+            else if (mode == RISING) { EICRA |= (1 << ISC01) | (1 << ISC00); }
+            else if (mode == CHANGE) { EICRA |= (1 << ISC00); }
+            mega::privat::int_funcs[0] = userFunc;
+            EIMSK |= (1 << INT0);
+        }
+        else if (pin == 20) {
+            EICRA &= ~((1 << ISC10) | (1 << ISC11));
+            if (mode == FALLING)     { EICRA |= (1 << ISC11); }
+            else if (mode == RISING) { EICRA |= (1 << ISC11) | (1 << ISC10); }
+            else if (mode == CHANGE) { EICRA |= (1 << ISC10); }
+            mega::privat::int_funcs[1] = userFunc;
+            EIMSK |= (1 << INT1);
+        }
+        else if (pin == 19) {
+            EICRA &= ~((1 << ISC20) | (1 << ISC21));
+            if (mode == FALLING)     { EICRA |= (1 << ISC21); }
+            else if (mode == RISING) { EICRA |= (1 << ISC21) | (1 << ISC20); }
+            else if (mode == CHANGE) { EICRA |= (1 << ISC20); }
+            mega::privat::int_funcs[2] = userFunc;
+            EIMSK |= (1 << INT2);
+        }
+        else if (pin == 18) {
+            EICRA &= ~((1 << ISC30) | (1 << ISC31));
+            if (mode == FALLING)     { EICRA |= (1 << ISC31); }
+            else if (mode == RISING) { EICRA |= (1 << ISC31) | (1 << ISC30); }
+            else if (mode == CHANGE) { EICRA |= (1 << ISC30); }
+            mega::privat::int_funcs[3] = userFunc;
+            EIMSK |= (1 << INT3);
+        }
+        else if (pin == 2) {
+            EICRB &= ~((1 << ISC40) | (1 << ISC41));
+            if (mode == FALLING)     { EICRB |= (1 << ISC41); }
+            else if (mode == RISING) { EICRB |= (1 << ISC41) | (1 << ISC40); }
+            else if (mode == CHANGE) { EICRB |= (1 << ISC40); }
+            mega::privat::int_funcs[4] = userFunc;
+            EIMSK |= (1 << INT4);
+        }
+        else if (pin == 3) {
+            EICRB &= ~((1 << ISC50) | (1 << ISC51));
+            if (mode == FALLING)     { EICRB |= (1 << ISC51); }
+            else if (mode == RISING) { EICRB |= (1 << ISC51) | (1 << ISC50); }
+            else if (mode == CHANGE) { EICRB |= (1 << ISC50); }
+            mega::privat::int_funcs[5] = userFunc;
+            EIMSK |= (1 << INT5);
+        }
+        else if ((pin >= 10 && pin <= 13) || (pin >= 50 && pin <= 53)) {
+            PCICR |= (1 << PCIE0);
+            uint8_t bit{(pin >= 50 && pin <= 53) ? (53 - pin) : (pin - 6)};
+            PCMSK0 |= (1 << bit);
+            mega::privat::callbacks[pin] = userFunc;
+            mega::privat::modes[pin] = mode;
+            mega::privat::last_port_B = PINB;
+        }
+        else if (pin >= 62 && pin <= 69) {
+            PCICR |= (1 << PCIE2);
+            PCMSK2 |= (1 << (pin - 62));
+            mega::privat::callbacks[pin] = userFunc;
+            mega::privat::modes[pin] = mode;
+            mega::privat::last_port_K = PINK;
+        }
+        else if (pin == 0 || pin == 14 || pin == 15) {
+            PCICR |= (1 << PCIE1);
+            if (pin == 0)       { PCMSK1 |= (1 << PCINT8); }
+            else if (pin == 15) { PCMSK1 |= (1 << PCINT9); }
+            else if (pin == 14) { PCMSK1 |= (1 << PCINT10); }
+            mega::privat::callbacks[pin] = userFunc;
+            mega::privat::modes[pin] = mode;
+            mega::privat::last_port_E = PINE;
+            mega::privat::last_port_J = PINJ;
+        }
+        
+        SREG = oldSREG;
+    }
+    void detachInterrupt(uint8_t pin) 
+    {
+        uint8_t oldSREG{SREG};
+        cli();
+        
+        if (pin == 21) { EIMSK &= ~(1 << INT0); mega::privat::int_funcs[0] = nullptr; }
+        else if (pin == 20) { EIMSK &= ~(1 << INT1); mega::privat::int_funcs[1] = nullptr; }
+        else if (pin == 19) { EIMSK &= ~(1 << INT2); mega::privat::int_funcs[2] = nullptr; }
+        else if (pin == 18) { EIMSK &= ~(1 << INT3); mega::privat::int_funcs[3] = nullptr; }
+        else if (pin == 2)  { EIMSK &= ~(1 << INT4); mega::privat::int_funcs[4] = nullptr; }
+        else if (pin == 3)  { EIMSK &= ~(1 << INT5); mega::privat::int_funcs[5] = nullptr; }
+        else if ((pin >= 10 && pin <= 13) || (pin >= 50 && pin <= 53)) {
+            uint8_t bit{(pin >= 50 && pin <= 53) ? (53 - pin) : (pin - 6)};
+            PCMSK0 &= ~(1 << bit);
+            mega::privat::callbacks[pin] = nullptr;
+        }
+        else if (pin >= 62 && pin <= 69) {
+            PCMSK2 &= ~(1 << (pin - 62));
+            mega::privat::callbacks[pin] = nullptr;
+        }
+        else if (pin == 0) {
+            PCMSK1 &= ~(1 << PCINT8);
+            mega::privat::callbacks[0] = nullptr;
+        }
+        else if (pin == 15) {
+            PCMSK1 &= ~(1 << PCINT9);
+            mega::privat::callbacks[15] = nullptr;
+        }
+        else if (pin == 14) {
+            PCMSK1 &= ~(1 << PCINT10);
+            mega::privat::callbacks[14] = nullptr;
+        }
+
+        SREG = oldSREG;
+    }
 
 
     void initTimer(void) {
@@ -1227,5 +1353,114 @@ ISR(TIMER2_COMPA_vect) {
         }
     } 
 }
+
+ISR(INT0_vect) { if (mega::privat::int_funcs[0]) { mega::privat::int_funcs[0](); } }
+ISR(INT1_vect) { if (mega::privat::int_funcs[1]) { mega::privat::int_funcs[1](); } }
+ISR(INT2_vect) { if (mega::privat::int_funcs[2]) { mega::privat::int_funcs[2](); } }
+ISR(INT3_vect) { if (mega::privat::int_funcs[3]) { mega::privat::int_funcs[3](); } }
+ISR(INT4_vect) { if (mega::privat::int_funcs[4]) { mega::privat::int_funcs[4](); } }
+ISR(INT5_vect) { if (mega::privat::int_funcs[5]) { mega::privat::int_funcs[5](); } }
+
+ISR(PCINT0_vect) {
+    uint8_t current {PINB};
+    uint8_t changed {current ^ mega::privat::last_port_B};
+    mega::privat::last_port_B = current;
+
+    for (uint8_t bit {}; bit < 8; bit++) {
+        if (changed & (1 << bit)) {
+            uint8_t pin{255};
+
+            if (bit <= 3) { 
+                pin = 53 - bit; 
+            } else {
+                pin = bit + 6;
+            }
+
+            func_ptr cb{mega::privat::callbacks[pin]};
+            if (!cb) { continue; }
+
+            uint8_t mode{mega::privat::modes[pin]};
+            bool pinState{(current & (1 << bit))};
+
+            if (mode == CHANGE || 
+               (mode == RISING && pinState) || 
+               (mode == FALLING && !pinState)) {
+                cb();
+            }
+        }
+    }
+}
+
+ISR(PCINT1_vect) {
+    uint8_t currentE {PINE};
+    uint8_t currentJ {PINJ};
+    uint8_t changedE {currentE ^ mega::privat::last_port_E};
+    uint8_t changedJ {currentJ ^ mega::privat::last_port_J};
+    mega::privat::last_port_E = currentE;
+    mega::privat::last_port_J = currentJ;
+
+    if (changedE & (1 << 0)) {
+        func_ptr cb{mega::privat::callbacks[0]};
+        if (cb) {
+            uint8_t mode{mega::privat::modes[0]};
+            bool pinState{(currentE & (1 << 0))};
+            if (mode == CHANGE || 
+               (mode == RISING && pinState) || 
+               (mode == FALLING && !pinState)) {
+                cb();
+            }
+        }
+    }
+
+    if (changedJ & (1 << 0)) {
+        func_ptr cb{mega::privat::callbacks[15]};
+        if (cb) {
+            uint8_t mode{mega::privat::modes[15]};
+            bool pinState{(currentJ & (1 << 0))};
+            if (mode == CHANGE || 
+               (mode == RISING && pinState) || 
+               (mode == FALLING && !pinState)) {
+                cb();
+            }
+        }
+    }
+
+    if (changedJ & (1 << 1)) {
+        func_ptr cb{mega::privat::callbacks[14]};
+        if (cb) {
+            uint8_t mode{mega::privat::modes[14]};
+            bool pinState{(currentJ & (1 << 1))};
+            if (mode == CHANGE || 
+               (mode == RISING && pinState) || 
+               (mode == FALLING && !pinState)) {
+                cb();
+            }
+        }
+    }
+}
+
+ISR(PCINT2_vect) {
+    uint8_t current {PINK};
+    uint8_t changed {current ^ mega::privat::last_port_K};
+    mega::privat::last_port_K = current;
+
+    for (uint8_t bit{}; bit < 8; bit++) {
+        if (changed & (1 << bit)) {
+            uint8_t pin{62 + bit};
+            func_ptr cb{mega::privat::callbacks[pin]};
+            if (!cb) {continue;}
+
+            uint8_t mode{mega::privat::modes[pin]};
+            bool pinState{(current & (1 << bit))};
+
+            if (mode == CHANGE || 
+               (mode == RISING && pinState) || 
+               (mode == FALLING && !pinState)) {
+                cb();
+            }
+        }
+    }
+}
 }
 #endif
+// 1174
