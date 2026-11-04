@@ -21,7 +21,7 @@ using func_ptr = void (*)();
 
 namespace util_uno
 {
-    static inline bool notPwmPin(uint8_t pin)
+    inline bool notPwmPin(uint8_t pin)
     {
         switch (pin) {
             case 3 : return 0;
@@ -80,7 +80,7 @@ namespace util_uno
 
 namespace util_mega
 {
-    static inline bool notPwmPin(uint8_t pin)
+    inline bool notPwmPin(uint8_t pin)
     {
         switch (pin) {
             case 2 : return 0;
