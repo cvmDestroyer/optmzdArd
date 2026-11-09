@@ -107,6 +107,9 @@ namespace ard // <- done
     template<uint8_t PIN, func_ptr USER_FUNC, uint8_t INT_MODE> void attachInterrupt(void) { ::attachInterrupt(digitalPinToInterrupt(PIN), USER_FUNC, INT_MODE); }
     template<uint8_t PIN> void detachInterrupt(void)                                       { ::detachInterrupt(digitalPinToInterrupt(PIN));                      }
 
+    inline uint8_t shiftIn(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder)            { ::shiftIn(dataPin, clockPin, bitOrder);       }
+    inline void shiftOut(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder, uint8_t val) { ::shiftOut(dataPin, clockPin, bitOrder, val); }
+
     inline void initTimer(void) {;} // null statement
     // this is if someone wants to write a lib with optmzdArd.h included
     // the thought proccess is if someone writes a lib for every chip they might use something like this:
@@ -162,6 +165,9 @@ namespace uno
     void detachInterrupt(uint8_t pin);                                  // <- done
 
     #include"templates/uno.h"
+
+    uint8_t shiftIn(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder);
+    void shiftOut(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder, uint8_t val);
 
     uint16_t analogRead(uint8_t pin, bool modePeformance);
     void tone(uint16_t frequency);
@@ -228,6 +234,9 @@ namespace mega {
     void detachInterrupt(uint8_t pin);                                  // <- done
 
     #include"templates/mega.h"
+
+    uint8_t shiftIn(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder);
+    void shiftOut(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder, uint8_t val);
 
     uint16_t analogRead(uint8_t pin, bool modePeformance);
     void initTimer(void);

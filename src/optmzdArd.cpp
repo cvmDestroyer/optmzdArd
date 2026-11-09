@@ -606,6 +606,39 @@ namespace uno
         }
         SREG = oldSREG;
     }
+
+    uint8_t shiftIn(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder) {
+        uint8_t value = 0;
+        uint8_t i;
+
+        for (i = 0; i < 8; ++i) {
+            uno::digitalWrite(clockPin, HIGH);
+            if (bitOrder == LSBFIRST)
+                value |= uno::digitalRead(dataPin) << i;
+            else
+                value |= uno::digitalRead(dataPin) << (7 - i);
+            uno::digitalWrite(clockPin, LOW);
+        }
+        return value;
+    }
+
+    void shiftOut(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder, uint8_t val)
+    {
+        uint8_t i;
+
+        for (i = 0; i < 8; i++)  {
+            if (bitOrder == LSBFIRST) {
+                uno::digitalWrite(dataPin, val & 1);
+                val >>= 1;
+            } else {	
+                uno::digitalWrite(dataPin, (val & 128) != 0);
+                val <<= 1;
+            }
+                
+            uno::digitalWrite(clockPin, HIGH);
+            uno::digitalWrite(clockPin, LOW);		
+        }
+    }
     // extras
     uint16_t analogRead(uint8_t pin, bool modePeformance)
     {
@@ -1292,6 +1325,38 @@ namespace mega {
         SREG = oldSREG;
     }
 
+    uint8_t shiftIn(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder) {
+        uint8_t value = 0;
+        uint8_t i;
+
+        for (i = 0; i < 8; ++i) {
+            mega::digitalWrite(clockPin, HIGH);
+            if (bitOrder == LSBFIRST)
+                value |= mega::digitalRead(dataPin) << i;
+            else
+                value |= mega::digitalRead(dataPin) << (7 - i);
+            mega::digitalWrite(clockPin, LOW);
+        }
+        return value;
+    }
+
+    void shiftOut(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder, uint8_t val)
+    {
+        uint8_t i;
+
+        for (i = 0; i < 8; i++)  {
+            if (bitOrder == LSBFIRST) {
+                mega::digitalWrite(dataPin, val & 1);
+                val >>= 1;
+            } else {	
+                mega::digitalWrite(dataPin, (val & 128) != 0);
+                val <<= 1;
+            }
+                
+            mega::digitalWrite(clockPin, HIGH);
+            mega::digitalWrite(clockPin, LOW);		
+        }
+    }
 
     void initTimer(void) {
         #ifdef ENABLE_MEGA_HIGH_RISK_HIGH_PRECISION_TIMER_5
