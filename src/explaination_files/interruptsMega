@@ -1,0 +1,84 @@
+#include <Arduino.h> // clang-format off
+/*
+'  _______   _______                                           _______   _______   _______   _______ 
+' |       | |       |  _______   _______   ________  _______  | ___   | |    ___| |   ____| |   __  |
+' |   |   | └-┐   ┌-┘ |       | |       | |   __  | |____   | └─'__|  | |___    | |  └----┐ |  | ╱| |
+' |       |   |   |   |  |  | | |   ' __| |     __| |   .   |  ╱  ____|  ___│   | |  [ ]  | |  |╱_| |
+' |___|___|   |___|   |__|__|_| |_______| ┌' __'──┐ |_____|_| |_______| |_______| |_______| |_______|
+'                                         |_______|                                        
+'
+'  _______   _______   ________  _______ 
+' |       | |       | |   __  | |____   |
+' |  |  | | |   ' __| |     __| |   .   |
+' |__|__|_| |_______| ┌' __'──┐ |_____|_|
+'                     |_______|          
+*/
+
+/*
+  IF THIS IS YOUR FIRST EXPLAINATION FILE YOUR IN THE WRONG PLACE THIS IS EXPLAINATION FILE NUMBER 4
+  if you wanna learn more this is the road map start at portsMega or take a look at the ATmega2560 datasheet by ATMEL:
+  portsMega -> analogMega -> timerMega -> interruptsMega
+  .
+  this file is a explaination file and is not needed for the optmzdArd lib delete at your will
+  sorry if there are some grammatical mistakes im not good with languages not even in my mother-langueage (german)
+  i make many easy mistakes but just so you know i've tried my best
+*/
+/*
+  alright if you've never worked with an mega you might not know this (me included) BUT you cant attachInerrupts
+  on all pins i myself thought there will be just more PCINTs but no there still only are 3. here are the pins
+  you actualy CAN attachInterrupt on using PCINT:
+  ____________________________________________________________________ 
+  '   ports  | register | ISR vector  |             pins
+  ' ---------|----------|-------------|--------------------------------
+  '  port B  |  PCMSK0  | PCINT0_vect | 10, 11, 12, 13, 50, 51, 52, 53
+  ' port J&E |  PCMSK1  | PCINT1_vect | 0, 15, 14 (the rest are not )
+  '  port K  |  PCMSK2  | PCINT2_vect | A8, A9, A10, A11, A12, A13, A14, A15
+
+  ofc there are REAL interrupts build in some of the pin of the mega too. these pins are
+  21, 20, 19, 18, 2, 3 these have real interrupts with actuak RISING and FALLING build into it if
+  your wanna know more about it just look in the interruptsUno file there erverything such as registers
+  and bits should be in the rest is identical to the uno 'attachInterrupt' if you feel like your ready
+  lets try to begin the whole thing
+  (we only do a very simple version of it in this file with only ONE interrupt actualy workinh per PCINT)
+*/
+namespace interruptsMega {
+#include "portsMega"
+using namespace portsMega;
+
+void (*volatile user_saved_func)(void);
+
+void attachInterrupt(uint8_t pin, void(*user_func)(void), uint8_t mode) {
+    // alright this works for every pin the almost the exact way therefore we only do one example for
+    // PCINT and one for INT the rest you can try your self and correct it by comparing it with
+    // the optmzdArd.cpp version in namespace gpio::mega
+
+    // first we do the INT thingy for pin 21
+    if (pin == 21) {
+        EICRA &= ~((1 << ISC00) | (1 << ISC00)); // we deactivate the mode so we can chnage it based on the mode
+        // the user selects and btw 21 is INT0 just so you know thats why ISC0x. pin 20 is INT1, pin 19 is INT2
+        // , pin 18 is INT3, pin 2 is INT4 and pin 3 is INT5
+        if (mode == FALLING) { // this is the thing i talked about earlier and why bit ISC00 and ISC01 had to be reset
+            EICRA |= (1 << ISC01); // this is simply FALLING on the actual hardware interrupt and for the rest is the same
+        } else if (mode == RISING) {
+            EICRA |= (1 << ISC01) | (1 << ISC00);
+        } else if (mode == CHANGE) {
+            EICRA |= (1 << ISC00); 
+        }
+        user_saved_func = user_func; // just save the user_func
+        // the next step is just to turn it on with EIMSK now we just need a vector and for INT0 the vector is called INT0_vect
+        EIMSK |= (1 << INT0);
+    }
+    // now we need one more example for the PCINT and we just gonna use the worst version so if you wanna finish the 
+    // the code it'll be quick and easy with no struggles
+    if ((pin >= 10 && pin <= 13) || (pin >= 50 && pin <= 53)) {
+        // alright on PCINT we first need to turn on PCINT in this case PCINT0 heres how:
+        PCICR |= (1 << PCIE0); // thats all if you wanna turn any other PCINT just replace the 0 with the number of the PCINT
+        uint8_t bit = (pin >= 50 && pin <= 53) ? (53 - pin) : (pin - 6);
+    }
+} 
+/*
+  if you wanna know more about the mega take a look at the ATmega2560 datasheet by ATMEL or continue this 
+  explaination file series with timerMega. 
+  .                                    happy coding :)
+*/
+}
